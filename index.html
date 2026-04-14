@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⚽ Asta Fantacalcio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --g: #1a6b3c; --gl: #2d9e5c; --gd: #0f4024;
+  --gold: #f0c040; --gold2: #c89a20;
+  --red: #d63030; --white: #f0f0e8;
+  --bg: #0d1510; --bg2: #162019; --bg3: #1e2e22;
+  --border: #2a4030;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── SETUP ──────────────────────────────────────── */
+#setup{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem;gap:0}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,12vw,7rem);color:var(--gold);letter-spacing:6px;line-height:.9;text-align:center}
+.logo span{display:block;font-size:clamp(1.2rem,4vw,2rem);color:var(--gl);letter-spacing:4px;margin-top:.3rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:460px;margin-top:1.2rem}
+.card h2{font-family:'Barlow Condensed',sans-serif;font-size:1rem;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem}
+label{display:block;font-size:.78rem;color:#6a9a7a;text-transform:uppercase;letter-spacing:1px;margin:.9rem 0 .3rem}
+input,textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'Barlow',sans-serif;font-size:.95rem;padding:.65rem .9rem;outline:none;transition:border .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--gl)}
+textarea{resize:vertical;min-height:100px;font-size:.85rem}
+.btn{padding:.7rem 1.4rem;border-radius:8px;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .15s;display:inline-block}
+.btn-g{background:var(--gl);color:#fff}.btn-g:hover{background:var(--g)}
+.btn-gold{background:var(--gold);color:#111}.btn-gold:hover{background:var(--gold2)}
+.btn-out{background:transparent;color:var(--white);border:1px solid var(--border)}.btn-out:hover{background:var(--bg3)}
+.btn-red{background:var(--red);color:#fff}
+.btn-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem}
+.btn:disabled{background:#333;color:#666;cursor:not-allowed}
+.file-label{display:flex;align-items:center;gap:.7rem;background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:.8rem 1rem;cursor:pointer;transition:border .2s;margin-top:.3rem}
+.file-label:hover{border-color:var(--gl)}
+.file-label input{display:none}
+.file-label span{font-size:.9rem;color:#6a9a7a}
+.file-label strong{font-size:.9rem;color:var(--white)}
+.wsurl{font-size:.75rem;color:#4a7a55;padding:.3rem .6rem;background:var(--bg3);border-radius:6px;word-break:break-all;margin-top:.4rem}
+
+/* ── ADMIN ──────────────────────────────────────── */
+#admin{display:none;padding:1rem;max-width:1000px;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.7rem 0;border-bottom:1px solid var(--border);margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.topbar h1{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:var(--gold);letter-spacing:2px}
+.badge{border-radius:20px;padding:.2rem .8rem;font-size:.75rem;font-weight:600}
+.badge-ok{background:#1a3a22;color:var(--gl)}
+.badge-err{background:#3a1a1a;color:#e07070}
+.sec{font-family:'Barlow Condensed',sans-serif;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;color:#4a7a55;margin:1rem 0 .4rem}
+
+/* player card admin */
+.pcard{background:var(--bg2);border:2px solid var(--gl);border-radius:14px;padding:1.2rem 1.5rem;text-align:center;position:relative;overflow:hidden;margin-bottom:.8rem}
+.pcard::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top,#2d9e5c18 0%,transparent 65%);pointer-events:none}
+.p-role{font-family:'Barlow Condensed',sans-serif;font-size:.8rem;letter-spacing:3px;color:var(--gl);text-transform:uppercase}
+.p-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,7vw,4rem);color:var(--white);letter-spacing:2px;line-height:1.1}
+.p-team{font-size:.95rem;color:#6a9a7a;font-weight:500}
+.p-price{font-size:.9rem;color:var(--gold);margin-top:.3rem;font-family:'Barlow Condensed',sans-serif}
+.p-queue{font-size:.78rem;color:#4a7a55;margin-top:.2rem}
+
+/* bids grid */
+.bids-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem;margin:.4rem 0}
+.btile{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.6rem .9rem;position:relative;transition:border .3s}
+.btile.top{border-color:var(--gold);background:#28260a}
+.btile .cn{font-size:.75rem;color:#6a9a7a;text-transform:uppercase;letter-spacing:1px}
+.btile .ba{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:var(--white);line-height:1}
+.btile.top .ba{color:var(--gold)}
+.btile .bt{font-size:.65rem;color:#3a6a45}
+.crown{position:absolute;top:.35rem;right:.5rem;font-size:.9rem}
+
+/* coaches + assigned */
+.coaches-wrap{display:flex;flex-wrap:wrap;gap:.4rem;margin:.4rem 0 .8rem}
+.cchip{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.4rem .75rem;min-width:120px}
+.cchip .cn{font-weight:600;font-size:.88rem}
+.cchip .cb{font-size:.78rem;color:var(--gl)}
+.alist{margin:.4rem 0}
+.aitem{display:flex;align-items:center;gap:.7rem;padding:.4rem .6rem;border-bottom:1px solid #141e18;font-size:.85rem}
+.aitem .ap{font-weight:600;flex:1}
+.aitem .ac{color:#6a9a7a;font-size:.8rem}
+.aitem .am{color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:700}
+.aitem .ar{font-size:.7rem;color:#4a7a55;background:var(--bg3);border-radius:4px;padding:1px 5px}
+
+/* controls */
+.ctrl{display:flex;gap:.5rem;flex-wrap:wrap;margin:.7rem 0}
+.no-player{text-align:center;padding:2rem 1rem;color:#4a7a55;font-size:.95rem}
+.winner-bar{background:linear-gradient(135deg,#28260a,#342e0a);border:2px solid var(--gold);border-radius:12px;padding:1rem 1.5rem;text-align:center;margin:.7rem 0;animation:pulse 1s ease 3}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 16px 2px #f0c04044}}
+.winner-bar h3{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold)}
+.winner-bar p{color:var(--white);font-size:.9rem;margin-top:.2rem}
+
+/* ── COACH ──────────────────────────────────────── */
+#coach{display:none;min-height:100vh;padding:.8rem}
+.ch-head{text-align:center;padding:.8rem 0 1rem}
+.ch-name{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);letter-spacing:2px}
+.ch-budget{font-size:.95rem;color:var(--gl);font-weight:600}
+.ch-budget span{font-size:1.3rem;color:var(--white)}
+
+.mp-card{background:var(--bg2);border:2px solid var(--gl);border-radius:14px;padding:1.2rem;text-align:center;margin-bottom:1.2rem}
+.mp-role{font-size:.75rem;letter-spacing:3px;color:var(--gl);text-transform:uppercase}
+.mp-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,10vw,3.2rem);color:var(--white);letter-spacing:1px;line-height:1.1}
+.mp-team{font-size:.85rem;color:#6a9a7a}
+.mp-price{font-size:.85rem;color:var(--gold);margin-top:.2rem;font-family:'Barlow Condensed',sans-serif}
+
+.bid-box{background:var(--bg2);border-radius:14px;padding:1.2rem;text-align:center}
+.bid-hint{font-size:.75rem;color:#6a9a7a;text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem}
+.bid-num{font-family:'Bebas Neue',sans-serif;font-size:5.5rem;color:var(--gold);line-height:1;min-width:140px;display:inline-block;border-bottom:3px solid var(--gold);margin-bottom:.8rem;letter-spacing:2px}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;max-width:270px;margin:0 auto .8rem}
+.np{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.9rem;font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:700;color:var(--white);cursor:pointer;transition:background .1s;user-select:none;-webkit-user-select:none}
+.np:active{background:#1a3520;transform:scale(.95)}
+.np.del{color:#e07070}
+.np.zero{grid-column:span 2}
+.send{width:100%;max-width:270px;padding:1rem;font-size:1.2rem;background:var(--gold);color:#111;border:none;border-radius:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .15s;display:block;margin:0 auto}
+.send:active{transform:scale(.97);background:var(--gold2)}
+.send:disabled{background:#333;color:#666;cursor:not-allowed}
+.my-bid{margin-top:.8rem;padding:.65rem;background:var(--bg3);border-radius:8px;text-align:center;font-size:.85rem;color:#6a9a7a}
+.my-bid strong{color:var(--gold)}
+.wait{text-align:center;padding:3rem 1rem}
+.wait .icon{font-size:2.5rem;margin-bottom:.8rem}
+.wait p{color:#4a7a55;font-size:.95rem;line-height:1.6}
+.w-banner{background:linear-gradient(135deg,#28260a,#342e0a);border:2px solid var(--gold);border-radius:14px;padding:1.5rem;text-align:center;margin:.8rem 0;animation:pulse 1s ease 3}
+.w-banner.lost{border-color:var(--border);background:var(--bg3)}
+.w-banner h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold)}
+.w-banner.lost h2{color:#6a9a7a}
+.w-banner p{color:var(--white);font-size:.95rem;margin-top:.4rem}
+
+/* ── TOAST ──────────────────────────────────────── */
+.toast{position:fixed;top:1rem;left:50%;transform:translateX(-50%);padding:.6rem 1.3rem;border-radius:30px;font-weight:600;font-size:.85rem;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.toast.ok{background:#1a5a30;color:#a0ffb8;border:1px solid #2d9e5c}
+.toast.err{background:#5a1a1a;color:#ffb0b0;border:1px solid var(--red)}
+.toast.info{background:#2a2010;color:#ffd878;border:1px solid var(--gold)}
+
+/* ── MISC ───────────────────────────────────────── */
+.flex-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.pill{font-size:.72rem;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:.15rem .55rem;color:#6a9a7a}
+.dim{color:#4a7a55;font-size:.82rem}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ SETUP ══ -->
+<div id="setup">
+  <div class="logo">Asta<br>Fanta<br>calcio<span>Sistema d'asta in tempo reale</span></div>
+
+  <div class="card">
+    <h2>Entra come</h2>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="showPanel('admin-setup')">🖥 Admin</button>
+      <button class="btn btn-out" onclick="showPanel('coach-setup')">📱 Allenatore</button>
+    </div>
+  </div>
+
+  <!-- Admin setup -->
+  <div class="card" id="admin-setup" style="display:none">
+    <h2>Configurazione Admin</h2>
+    <label>Indirizzo WebSocket del server</label>
+    <input id="ws-admin" type="text" placeholder="wss://tuo-server.railway.app  oppure  ws://localhost:3000">
+    <p class="wsurl" id="ws-hint">Lascia vuoto per usare lo stesso host della pagina</p>
+
+    <label>Lista giocatori — Carica CSV Fantacalcio.it</label>
+    <label class="file-label">
+      <input type="file" id="csv-file" accept=".csv,.xlsx,.txt" onchange="loadCSV(this)">
+      <span id="csv-label">📂 Clicca per caricare il CSV</span>
+    </label>
+    <p class="dim" style="margin-top:.4rem">Formato CSV: <code>Id;R;Nome;Squadra;Qt.A;Qt.I</code> (lista ufficiale Fantacalcio.it) oppure inserisci manualmente sotto ↓</p>
+
+    <label>Oppure inserisci giocatori manualmente (Nome, Ruolo, Squadra, Crediti — uno per riga)</label>
+    <textarea id="manual-players" placeholder="Vlahovic, ATT, Juventus, 1&#10;Theo Hernandez, DIF, Milan, 1&#10;Di Lorenzo, DIF, Napoli, 1&#10;Barella, CEN, Inter, 1"></textarea>
+
+    <div id="players-preview" style="display:none;margin-top:.6rem">
+      <span class="dim" id="players-count"></span>
+    </div>
+
+    <button class="btn btn-gold" onclick="connectAdmin()" style="margin-top:1rem;width:100%">⚡ Connetti e Avvia Asta</button>
+  </div>
+
+  <!-- Coach setup -->
+  <div class="card" id="coach-setup" style="display:none">
+    <h2>Accedi come Allenatore</h2>
+    <label>Indirizzo server (fornito dall'admin)</label>
+    <input id="ws-coach" type="text" placeholder="wss://tuo-server.railway.app">
+    <label>Il tuo nome</label>
+    <input id="coach-name" type="text" placeholder="es. Mister Rossi" maxlength="24">
+    <label>Budget iniziale (crediti)</label>
+    <input id="coach-budget" type="number" value="500" min="1" max="9999">
+    <button class="btn btn-g" onclick="connectCoach()" style="margin-top:1rem;width:100%">🔌 Connetti</button>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════ ADMIN ══ -->
+<div id="admin">
+  <div class="topbar">
+    <h1>⚽ Asta Fantacalcio</h1>
+    <div class="flex-row">
+      <span class="badge badge-err" id="conn-badge">Offline</span>
+      <span class="dim" id="queue-info"></span>
+    </div>
+  </div>
+
+  <!-- Giocatore corrente -->
+  <div class="sec">Giocatore in asta</div>
+  <div id="pcard" class="pcard" style="display:none">
+    <div class="p-role" id="ap-role"></div>
+    <div class="p-name" id="ap-name"></div>
+    <div class="p-team" id="ap-team"></div>
+    <div class="p-price" id="ap-price"></div>
+    <div class="p-queue" id="ap-queue"></div>
+  </div>
+  <div id="no-player" class="no-player">Nessun giocatore in asta — premi "Prossimo"</div>
+
+  <!-- Winner banner (dopo chiusura) -->
+  <div id="winner-bar" class="winner-bar" style="display:none">
+    <h3 id="wb-title">🏆</h3>
+    <p id="wb-desc"></p>
+  </div>
+
+  <!-- Controlli admin -->
+  <div class="ctrl">
+    <button class="btn btn-g" id="btn-next" onclick="send({type:'next_player'})">▶ Prossimo</button>
+    <button class="btn btn-red" id="btn-close" onclick="send({type:'close_bidding'})" style="display:none">🔒 Chiudi offerte</button>
+    <button class="btn btn-gold" id="btn-assign" onclick="send({type:'confirm_assign'})" style="display:none">✅ Assegna</button>
+    <button class="btn btn-out" id="btn-skip" onclick="send({type:'skip_player'})" style="display:none">⏭ Salta</button>
+  </div>
+
+  <!-- Offerte -->
+  <div class="sec">Offerte in tempo reale</div>
+  <div class="bids-grid" id="bids-grid"><span class="dim">Nessuna offerta</span></div>
+
+  <!-- Allenatori -->
+  <div class="sec">Allenatori connessi</div>
+  <div class="coaches-wrap" id="coaches-wrap"><span class="dim">Nessuno connesso</span></div>
+
+  <!-- Assegnazioni -->
+  <div class="sec">Assegnazioni completate</div>
+  <div class="alist" id="alist"><span class="dim">—</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════ COACH ══ -->
+<div id="coach">
+  <div class="ch-head">
+    <div class="ch-name" id="my-name">—</div>
+    <div class="ch-budget">Budget: <span id="my-budget">—</span> cr</div>
+  </div>
+
+  <!-- In attesa -->
+  <div id="co-wait" class="wait">
+    <div class="icon">⏳</div>
+    <p>In attesa del<br>prossimo giocatore...</p>
+  </div>
+
+  <!-- Asta aperta -->
+  <div id="co-auction" style="display:none">
+    <div class="mp-card">
+      <div class="mp-role" id="co-role"></div>
+      <div class="mp-name" id="co-name-p"></div>
+      <div class="mp-team" id="co-team"></div>
+      <div class="mp-price" id="co-price"></div>
+    </div>
+    <div class="bid-box">
+      <div class="bid-hint">La tua offerta</div>
+      <div class="bid-num" id="bid-disp">0</div>
+      <div class="numpad">
+        <button class="np" onclick="nIn('1')">1</button>
+        <button class="np" onclick="nIn('2')">2</button>
+        <button class="np" onclick="nIn('3')">3</button>
+        <button class="np" onclick="nIn('4')">4</button>
+        <button class="np" onclick="nIn('5')">5</button>
+        <button class="np" onclick="nIn('6')">6</button>
+        <button class="np" onclick="nIn('7')">7</button>
+        <button class="np" onclick="nIn('8')">8</button>
+        <button class="np" onclick="nIn('9')">9</button>
+        <button class="np del" onclick="nDel()">⌫</button>
+        <button class="np zero" onclick="nIn('0')">0</button>
+      </div>
+      <button class="send" id="send-btn" onclick="submitBid()">💸 Invia Offerta</button>
+      <div class="my-bid" id="my-bid-info" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Offerte chiuse -->
+  <div id="co-closed" style="display:none">
+    <div class="w-banner" id="w-banner">
+      <h2 id="w-title"></h2>
+      <p id="w-desc"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Globals ──────────────────────────────────────────────────────────────────
+let ws, myRole, myCoachId, myCoachName;
+let currentBid = '';
+let parsedPlayers = [];
+
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = 'ok', ms = 2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// ── Setup panels ─────────────────────────────────────────────────────────────
+function showPanel(id) {
+  ['admin-setup','coach-setup'].forEach(p => {
+    document.getElementById(p).style.display = p === id ? 'block' : 'none';
+  });
+  // Pre-fill WS URL basato sull'host corrente
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const auto = `${proto}://${location.host}`;
+  if (id === 'admin-setup') document.getElementById('ws-admin').placeholder = auto;
+  if (id === 'coach-setup') document.getElementById('ws-coach').value = auto;
+}
+
+// ── CSV Loader ───────────────────────────────────────────────────────────────
+function loadCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    parsedPlayers = parseFantacalcioCSV(text);
+    if (parsedPlayers.length) {
+      document.getElementById('csv-label').innerHTML = `<strong>✅ ${parsedPlayers.length} giocatori caricati: ${file.name}</strong>`;
+      document.getElementById('players-preview').style.display = 'block';
+      document.getElementById('players-count').textContent =
+        `Portieri: ${parsedPlayers.filter(p=>p.role==='P').length} | `+
+        `Difensori: ${parsedPlayers.filter(p=>p.role==='D').length} | `+
+        `Centrocampisti: ${parsedPlayers.filter(p=>p.role==='C').length} | `+
+        `Attaccanti: ${parsedPlayers.filter(p=>p.role==='A').length}`;
+      toast(`✅ Caricati ${parsedPlayers.length} giocatori`, 'ok');
+    } else {
+      toast('⚠️ Formato CSV non riconosciuto', 'err');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+// Parser CSV ufficiale Fantacalcio.it (separatore ; o ,)
+// Colonne: Id;R;Nome;Squadra;Qt.A;Qt.I  (o varianti)
+function parseFantacalcioCSV(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const header = lines[0].toLowerCase().split(sep).map(h => h.trim().replace(/[^a-z0-9]/g,''));
+  const iRole  = header.findIndex(h => h === 'r' || h === 'ruolo');
+  const iName  = header.findIndex(h => h.includes('nome'));
+  const iTeam  = header.findIndex(h => h.includes('squad'));
+  const iQt    = header.findIndex(h => h.startsWith('qt'));
+  if (iName < 0) return [];
+  const roleMap = {'P':'P','D':'D','C':'C','A':'A','T':'C','W':'C','M':'C','Pc':'A','As':'D'};
+  return lines.slice(1).map(line => {
+    const cols = line.split(sep).map(c => c.trim().replace(/^"|"$/g,''));
+    const rawRole = iRole >= 0 ? (cols[iRole]||'').toUpperCase() : '?';
+    return {
+      name:  iName >= 0 ? cols[iName] : '?',
+      role:  roleMap[rawRole] || rawRole,
+      team:  iTeam >= 0 ? cols[iTeam] : '?',
+      base:  iQt >= 0 ? (parseInt(cols[iQt]) || 1) : 1
+    };
+  }).filter(p => p.name && p.name.length > 1);
+}
+
+// Parser manuale (Nome, Ruolo, Squadra, Crediti)
+function parseManual(text) {
+  return text.split('\n').filter(l=>l.trim()).map(line => {
+    const p = line.split(',').map(s=>s.trim());
+    return { name: p[0]||'?', role: (p[1]||'—').toUpperCase(), team: p[2]||'—', base: parseInt(p[3])||1 };
+  }).filter(p => p.name.length > 0);
+}
+
+// ── Connect Admin ─────────────────────────────────────────────────────────────
+function connectAdmin() {
+  // Determina lista giocatori
+  let players = parsedPlayers;
+  if (!players.length) {
+    const manual = document.getElementById('manual-players').value.trim();
+    if (manual) players = parseManual(manual);
+  }
+  if (!players.length) { toast('⚠️ Inserisci almeno un giocatore', 'err'); return; }
+
+  const rawUrl = document.getElementById('ws-admin').value.trim();
+  const wsUrl  = rawUrl || buildAutoWsUrl();
+  myRole = 'admin';
+  initWS(wsUrl, () => {
+    send({ type: 'register_admin' });
+    send({ type: 'set_players', players });
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('admin').style.display = 'block';
+  });
+}
+
+// ── Connect Coach ─────────────────────────────────────────────────────────────
+function connectCoach() {
+  myCoachName = document.getElementById('coach-name').value.trim();
+  const budget = parseInt(document.getElementById('coach-budget').value) || 500;
+  const rawUrl = document.getElementById('ws-coach').value.trim();
+  const wsUrl  = rawUrl || buildAutoWsUrl();
+  if (!myCoachName) { toast('Inserisci il tuo nome', 'err'); return; }
+  myCoachId = uid();
+  myRole = 'coach';
+  initWS(wsUrl, () => {
+    send({ type: 'register_coach', coachId: myCoachId, coachName: myCoachName, budget });
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('coach').style.display = 'block';
+    document.getElementById('my-name').textContent = myCoachName;
+    document.getElementById('my-budget').textContent = budget;
+  });
+}
+
+function buildAutoWsUrl() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${proto}://${location.host}`;
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+function initWS(url, onOpen) {
+  ws = new WebSocket(url);
+  ws.onopen = () => { onOpen(); setBadge(true); };
+  ws.onmessage = e => handleMsg(JSON.parse(e.data));
+  ws.onerror = () => toast('❌ Errore connessione al server', 'err', 5000);
+  ws.onclose = () => { setBadge(false); toast('⚠️ Connessione persa — ricarica la pagina', 'err', 7000); };
+}
+function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+
+function setBadge(ok) {
+  const el = document.getElementById('conn-badge');
+  if (!el) return;
+  el.textContent = ok ? 'Connesso ✓' : 'Offline';
+  el.className = `badge ${ok ? 'badge-ok' : 'badge-err'}`;
+}
+
+// ── Message handler ──────────────────────────────────────────────────────────
+function handleMsg(msg) {
+  switch (msg.type) {
+    case 'state':         renderState(msg.state); break;
+    case 'registered':    setBadge(true); break;
+    case 'players_loaded':toast(`✅ ${msg.count} giocatori caricati e rimescolati`, 'ok'); break;
+    case 'new_player':
+      currentBid = ''; updateBidDisp();
+      if (myRole === 'coach') showCoachAuction(msg.player);
+      else toast(`⚽ In asta: ${msg.player.name}`, 'info');
+      break;
+    case 'new_bid':
+      if (myRole === 'admin') toast(`💰 ${msg.bid.coachName}: ${msg.bid.amount} cr`, 'info', 1800);
+      break;
+    case 'bidding_closed':
+      if (myRole === 'admin') showWinnerBar(msg.winner, msg.player);
+      if (myRole === 'coach') showCoachClosed(msg.winner, msg.player);
+      break;
+    case 'auction_ended':
+      toast('🏁 Asta completata! Tutti i giocatori sono stati chiamati.', 'ok', 6000);
+      break;
+    case 'bid_error':
+      toast(`⚠️ ${msg.error}`, 'err');
+      break;
+  }
+}
+
+// ── Render state ─────────────────────────────────────────────────────────────
+function renderState(state) {
+  if (myRole === 'admin') renderAdmin(state);
+  if (myRole === 'coach') renderCoach(state);
+}
+
+function renderAdmin(s) {
+  // Queue info
+  document.getElementById('queue-info').textContent =
+    s.queue ? `${s.queue.length} giocatori rimasti` : '';
+
+  // Player card
+  if (s.currentPlayer) {
+    document.getElementById('pcard').style.display = '';
+    document.getElementById('no-player').style.display = 'none';
+    document.getElementById('ap-role').textContent = s.currentPlayer.role;
+    document.getElementById('ap-name').textContent = s.currentPlayer.name;
+    document.getElementById('ap-team').textContent = s.currentPlayer.team;
+    document.getElementById('ap-price').textContent = `Base: ${s.currentPlayer.base} cr`;
+    document.getElementById('ap-queue').textContent = s.queue ? `${s.queue.length} ancora in coda` : '';
+    document.getElementById('btn-close').style.display = s.auctionActive ? '' : 'none';
+    document.getElementById('btn-skip').style.display  = !s.auctionActive ? '' : 'none';
+    document.getElementById('btn-assign').style.display = (!s.auctionActive && s.bids?.length) ? '' : 'none';
+  } else {
+    document.getElementById('pcard').style.display = 'none';
+    document.getElementById('no-player').style.display = '';
+    document.getElementById('btn-close').style.display = 'none';
+    document.getElementById('btn-assign').style.display = 'none';
+    document.getElementById('btn-skip').style.display = 'none';
+    document.getElementById('winner-bar').style.display = 'none';
+  }
+
+  // Bids
+  const bids = s.bids || [];
+  const top = bids.reduce((t,b) => !t ? b : b.amount>t.amount ? b : b.amount===t.amount&&b.timestamp<t.timestamp ? b : t, null);
+  document.getElementById('bids-grid').innerHTML = bids.length
+    ? bids.slice().sort((a,b)=>b.amount-a.amount).map(b => {
+        const isTop = top && b.coachId === top.coachId;
+        const t = new Date(b.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        return `<div class="btile${isTop?' top':''}">
+          ${isTop?'<span class="crown">👑</span>':''}
+          <div class="cn">${b.coachName}</div>
+          <div class="ba">${b.amount}</div>
+          <div class="bt">${t}</div>
+        </div>`;
+      }).join('')
+    : '<span class="dim">Nessuna offerta</span>';
+
+  // Coaches
+  const coaches = s.coaches || {};
+  document.getElementById('coaches-wrap').innerHTML = Object.values(coaches).length
+    ? Object.values(coaches).map(c =>
+        `<div class="cchip"><div class="cn">${c.name}</div><div class="cb">${c.budget} cr</div></div>`
+      ).join('')
+    : '<span class="dim">Nessun allenatore connesso</span>';
+
+  // Assigned
+  const assigned = s.assigned || [];
+  document.getElementById('alist').innerHTML = assigned.length
+    ? assigned.slice().reverse().map(a =>
+        `<div class="aitem">
+          <span class="ar">${a.player.role}</span>
+          <span class="ap">${a.player.name}</span>
+          <span class="ac">${a.coachName}</span>
+          <span class="am">${a.amount} cr</span>
+        </div>`
+      ).join('')
+    : '<span class="dim">—</span>';
+}
+
+function showWinnerBar(winner, player) {
+  const el = document.getElementById('winner-bar');
+  el.style.display = '';
+  if (winner) {
+    document.getElementById('wb-title').textContent = `🏆 ${winner.coachName}`;
+    document.getElementById('wb-desc').textContent  = `${player?.name} aggiudicato per ${winner.amount} crediti`;
+  } else {
+    document.getElementById('wb-title').textContent = '😶 Nessuna offerta';
+    document.getElementById('wb-desc').textContent  = `${player?.name} non assegnato`;
+  }
+}
+
+function renderCoach(s) {
+  const me = s.coaches?.[myCoachId];
+  if (me) document.getElementById('my-budget').textContent = me.budget;
+
+  // Aggiorna my-bid-info se asta aperta
+  if (s.auctionActive) {
+    const myBid = (s.bids||[]).find(b => b.coachId === myCoachId);
+    const info  = document.getElementById('my-bid-info');
+    if (myBid) {
+      info.style.display = '';
+      info.innerHTML = `Offerta inviata: <strong>${myBid.amount} cr</strong>`;
+    } else {
+      info.style.display = 'none';
+    }
+  }
+}
+
+function showCoachAuction(player) {
+  document.getElementById('co-wait').style.display   = 'none';
+  document.getElementById('co-auction').style.display = '';
+  document.getElementById('co-closed').style.display  = 'none';
+  document.getElementById('co-role').textContent   = player.role;
+  document.getElementById('co-name-p').textContent = player.name;
+  document.getElementById('co-team').textContent   = player.team;
+  document.getElementById('co-price').textContent  = `Base: ${player.base} cr`;
+  document.getElementById('send-btn').disabled     = false;
+  document.getElementById('my-bid-info').style.display = 'none';
+  currentBid = ''; updateBidDisp();
+}
+
+function showCoachClosed(winner, player) {
+  document.getElementById('co-auction').style.display = 'none';
+  document.getElementById('co-closed').style.display  = '';
+  const isMe = winner && winner.coachId === myCoachId;
+  const banner = document.getElementById('w-banner');
+  banner.className = `w-banner${isMe ? '' : ' lost'}`;
+  if (winner) {
+    document.getElementById('w-title').textContent = isMe ? '🏆 HAI VINTO!' : '❌ Non aggiudicato';
+    document.getElementById('w-desc').textContent  = isMe
+      ? `${player?.name} è tuo per ${winner.amount} cr!`
+      : `${winner.coachName} ha preso ${player?.name} a ${winner.amount} cr`;
+  } else {
+    document.getElementById('w-title').textContent = '—';
+    document.getElementById('w-desc').textContent  = 'Nessuna offerta ricevuta';
+  }
+}
+
+// ── Numpad ────────────────────────────────────────────────────────────────────
+function nIn(n) {
+  if (currentBid.length >= 4) return;
+  currentBid += n;
+  currentBid = currentBid.replace(/^0+/,'') || '0';
+  updateBidDisp();
+}
+function nDel() { currentBid = currentBid.slice(0,-1); updateBidDisp(); }
+function updateBidDisp() { document.getElementById('bid-disp').textContent = currentBid || '0'; }
+
+function submitBid() {
+  const amount = parseInt(currentBid);
+  if (!amount || amount < 1) { toast('Inserisci un importo valido', 'err'); return; }
+  send({ type: 'bid', coachId: myCoachId, coachName: myCoachName, amount });
+}
+</script>
+</body>
+</html>

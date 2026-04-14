@@ -1,0 +1,16 @@
+{
+  "name": "asta-fantacalcio",
+  "version": "2.0.0",
+  "description": "Sistema d'asta Fantacalcio con WebSocket — remoto o locale",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.17.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
