@@ -271,24 +271,32 @@ wss.on('connection', ws => {
         broadcastState();
         break;
 
-      // ── Coach: offerta ──────────────────────────────────────────────────────
+      // ── Coach: offerta (accetta sia coachId che PIN come identificatore) ────
       case 'bid': {
         if (!state.auctionActive) {
           sendTo(ws, { type: 'bid_error', error: 'Offerte chiuse' }); return;
         }
-        const coach = state.coaches[msg.coachId];
-        if (!coach) { sendTo(ws, { type: 'bid_error', error: 'Profilo non trovato' }); return; }
+
+        // Risolve l'identità: prima usa ws.coachId (già registrato),
+        // poi prova msg.coachId, infine risale dal PIN della connessione
+        const resolvedCoachId = ws.coachId || msg.coachId || null;
+        const coach = resolvedCoachId ? state.coaches[resolvedCoachId] : null;
+
+        if (!coach) {
+          sendTo(ws, { type: 'bid_error', error: 'Profilo non trovato — attendi la registrazione' });
+          return;
+        }
+
         const amount = parseInt(msg.amount);
         if (!amount || amount < 1) { sendTo(ws, { type: 'bid_error', error: 'Offerta non valida' }); return; }
         if (amount > coach.budget) { sendTo(ws, { type: 'bid_error', error: 'Budget insufficiente!' }); return; }
 
-        const ex = state.bids.find(b => b.coachId === msg.coachId);
+        const ex = state.bids.find(b => b.coachId === resolvedCoachId);
         if (ex) { ex.amount = amount; ex.timestamp = Date.now(); }
-        else state.bids.push({ coachId: msg.coachId, coachName: coach.name, amount, timestamp: Date.now() });
+        else state.bids.push({ coachId: resolvedCoachId, coachName: coach.name, amount, timestamp: Date.now() });
 
         broadcastState();
-        // Solo il nome arriva come notifica — niente valore
-        broadcast({ type: 'bid_notification', coachName: coach.name, coachId: msg.coachId });
+        broadcast({ type: 'bid_notification', coachName: coach.name, coachId: resolvedCoachId });
         break;
       }
     }

@@ -586,6 +586,15 @@ function handleMsg(msg) {
         $('co-name').textContent   = msg.coachName;
         $('co-budget').textContent = msg.budget;
         if (msg.restored) toast(`👋 Bentornato ${msg.coachName}! Budget: ${msg.budget} cr`,'info',4000);
+        // Se c'è già un giocatore in asta, mostralo subito
+        if (lastState?.currentPlayer) {
+          if (lastState.auctionActive) showCoachAuction(lastState.currentPlayer);
+          else if (!lastState.bidsRevealed) showCoachClosed();
+          else showCoachResult(
+            lastState.bids?.length ? lastState.bids.reduce((t,b)=>!t?b:b.amount>t.amount?b:b.amount===t.amount&&b.timestamp<t.timestamp?b:t,null) : null,
+            lastState.currentPlayer
+          );
+        }
       }
       break;
 
@@ -748,9 +757,11 @@ function showAdminWinner(winner, player) {
 
 // ── Render Coach ───────────────────────────────────────────────────────────────
 function renderCoach(s) {
-  // Budget
-  const me = s.coaches?.[myCoachId];
-  if (me) $('co-budget').textContent = me.budget;
+  // Budget — aggiorna se il nostro profilo è già noto
+  if (myCoachId) {
+    const me = s.coaches?.[myCoachId];
+    if (me) $('co-budget').textContent = me.budget;
+  }
 
   // Timer coach
   const tVisible = s.timer?.enabled && s.auctionActive;
@@ -761,18 +772,38 @@ function renderCoach(s) {
     tNum.className = 'co-timer-num' + (s.timer.remaining <= 10 ? ' urgent' : '');
   }
 
-  // Mia offerta (durante asta)
-  if (s.auctionActive) {
+  // Mia offerta (solo se già identificati)
+  if (s.auctionActive && myCoachId) {
     const mine = (s.bids||[]).find(b=>b.coachId===myCoachId);
     const offerEl = $('co-myoffer');
     if (mine) { offerEl.classList.remove('hidden'); offerEl.innerHTML=`Offerta inviata: <strong>${mine.amount} cr</strong>`; }
     else offerEl.classList.add('hidden');
   }
 
-  // Gestisce la transizione a "in attesa" quando il giocatore viene assegnato
-  if (!s.currentPlayer && !s.auctionActive) {
+  // Navigazione stati — reagisce allo state indipendentemente da myCoachId
+  const isAuctionOpen   = s.auctionActive && !!s.currentPlayer;
+  const isAuctionClosed = !s.auctionActive && !!s.currentPlayer && !s.bidsRevealed;
+  const isRevealed      = !s.auctionActive && !!s.currentPlayer && s.bidsRevealed;
+  const isIdle          = !s.currentPlayer;
+
+  // Aggiorna solo se lo stato è cambiato rispetto a quello visibile
+  // (evita di resettare il tastierino durante la digitazione)
+  const coAuction = $('co-auction');
+  const coClosed  = $('co-closed');
+  const coResult  = $('co-result');
+  const coWait    = $('co-wait');
+
+  if (isIdle) {
     show('co-wait', true); show('co-auction', false);
     show('co-closed', false); show('co-result', false);
+  } else if (isAuctionOpen && coAuction.classList.contains('hidden')) {
+    // Mostra asta solo se non è già visibile (non interrompe digitazione in corso)
+    showCoachAuction(s.currentPlayer);
+  } else if (isAuctionClosed && !coClosed.classList.contains('hidden') === false) {
+    showCoachClosed();
+  } else if (isRevealed && coResult.classList.contains('hidden')) {
+    const top = (s.bids||[]).reduce((t,b)=>!t?b:b.amount>t.amount?b:b.amount===t.amount&&b.timestamp<t.timestamp?b:t, null);
+    showCoachResult(top, s.currentPlayer);
   }
 }
 
@@ -826,7 +857,8 @@ function updBidDisp() { $('co-bid-num').textContent = curBid||'0'; }
 function submitBid() {
   const amount = parseInt(curBid);
   if (!amount || amount < 1) { toast('Inserisci un importo valido','err'); return; }
-  sndObj({ type:'bid', coachId:myCoachId, coachName:myCoachName, amount });
+  // Manda coachId se disponibile, altrimenti il server usa ws.coachId dalla sessione
+  sndObj({ type:'bid', coachId: myCoachId || undefined, coachName: myCoachName || undefined, amount });
 }
 
 // ── Export CSV Leghe Fantacalcio.it ────────────────────────────────────────────
