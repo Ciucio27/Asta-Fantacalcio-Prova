@@ -1,6 +1,6 @@
 {
   "name": "asta-fantacalcio",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": { "ws": "^8.17.0" },
