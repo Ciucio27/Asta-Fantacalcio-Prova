@@ -2,197 +2,273 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>⚽ Asta Fantacalcio</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --g: #1a6b3c; --gl: #2d9e5c; --gd: #0f4024;
-  --gold: #f0c040; --gold2: #c89a20;
-  --red: #d63030; --white: #f0f0e8;
-  --bg: #0d1510; --bg2: #162019; --bg3: #1e2e22;
-  --border: #2a4030;
+:root{
+  --bg:#0d1510;--bg2:#162019;--bg3:#1e2e22;--bg4:#243228;
+  --g:#1a6b3c;--gl:#2d9e5c;--gd:#0f4024;
+  --gold:#f0c040;--gold2:#c89a20;
+  --red:#d63030;--red2:#a02020;
+  --white:#f0f0e8;--gray:#6a9a7a;--dim:#3a5a42;
+  --border:#2a4030;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{font-size:16px}
 body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden}
 
-/* ── SETUP ──────────────────────────────────────── */
-#setup{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem;gap:0}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,12vw,7rem);color:var(--gold);letter-spacing:6px;line-height:.9;text-align:center}
-.logo span{display:block;font-size:clamp(1.2rem,4vw,2rem);color:var(--gl);letter-spacing:4px;margin-top:.3rem}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:460px;margin-top:1.2rem}
-.card h2{font-family:'Barlow Condensed',sans-serif;font-size:1rem;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem}
-label{display:block;font-size:.78rem;color:#6a9a7a;text-transform:uppercase;letter-spacing:1px;margin:.9rem 0 .3rem}
-input,textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'Barlow',sans-serif;font-size:.95rem;padding:.65rem .9rem;outline:none;transition:border .2s}
-input:focus,textarea:focus,select:focus{border-color:var(--gl)}
-textarea{resize:vertical;min-height:100px;font-size:.85rem}
-.btn{padding:.7rem 1.4rem;border-radius:8px;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .15s;display:inline-block}
+/* ── GENERALI ── */
+.hidden{display:none!important}
+.btn{padding:.65rem 1.3rem;border-radius:8px;border:none;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{background:#2a3a2e!important;color:#4a6a52!important;cursor:not-allowed}
 .btn-g{background:var(--gl);color:#fff}.btn-g:hover{background:var(--g)}
 .btn-gold{background:var(--gold);color:#111}.btn-gold:hover{background:var(--gold2)}
 .btn-out{background:transparent;color:var(--white);border:1px solid var(--border)}.btn-out:hover{background:var(--bg3)}
-.btn-red{background:var(--red);color:#fff}
-.btn-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem}
-.btn:disabled{background:#333;color:#666;cursor:not-allowed}
-.file-label{display:flex;align-items:center;gap:.7rem;background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:.8rem 1rem;cursor:pointer;transition:border .2s;margin-top:.3rem}
-.file-label:hover{border-color:var(--gl)}
-.file-label input{display:none}
-.file-label span{font-size:.9rem;color:#6a9a7a}
-.file-label strong{font-size:.9rem;color:var(--white)}
-.wsurl{font-size:.75rem;color:#4a7a55;padding:.3rem .6rem;background:var(--bg3);border-radius:6px;word-break:break-all;margin-top:.4rem}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:var(--red2)}
+.btn-reveal{background:#1a3060;color:#88aaff;border:1px solid #3050a0}
+.btn-reveal:hover{background:#243878}
+label{display:block;font-size:.75rem;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin:.8rem 0 .3rem}
+input,textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;color:var(--white);font-family:'Barlow',sans-serif;font-size:.93rem;
+  padding:.6rem .85rem;outline:none;transition:border .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--gl)}
+textarea{resize:vertical;min-height:90px;font-size:.82rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.4rem;width:100%;max-width:480px;margin-top:1.1rem}
+.card h2{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;color:var(--gold);
+  text-transform:uppercase;letter-spacing:2px;margin-bottom:.9rem}
+.row{display:flex;gap:.5rem;flex-wrap:wrap}
+.sec{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;letter-spacing:2px;
+  text-transform:uppercase;color:var(--dim);margin:1rem 0 .4rem}
+.dim{color:var(--dim);font-size:.8rem}
+.pill{font-size:.7rem;background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:.15rem .5rem;color:var(--gray)}
 
-/* ── ADMIN ──────────────────────────────────────── */
-#admin{display:none;padding:1rem;max-width:1000px;margin:0 auto}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:.7rem 0;border-bottom:1px solid var(--border);margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
-.topbar h1{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:var(--gold);letter-spacing:2px}
-.badge{border-radius:20px;padding:.2rem .8rem;font-size:.75rem;font-weight:600}
-.badge-ok{background:#1a3a22;color:var(--gl)}
-.badge-err{background:#3a1a1a;color:#e07070}
-.sec{font-family:'Barlow Condensed',sans-serif;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;color:#4a7a55;margin:1rem 0 .4rem}
+/* ── SETUP ── */
+#setup{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:1.5rem}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,12vw,6.5rem);
+  color:var(--gold);letter-spacing:6px;line-height:.9;text-align:center}
+.logo span{display:block;font-size:clamp(1rem,3.5vw,1.6rem);color:var(--gl);
+  letter-spacing:4px;margin-top:.3rem}
+.file-drop{display:flex;align-items:center;gap:.7rem;background:var(--bg3);
+  border:1px dashed var(--border);border-radius:8px;padding:.75rem .9rem;cursor:pointer}
+.file-drop:hover{border-color:var(--gl)}
+.file-drop input{display:none}
+.file-drop .fl{font-size:.88rem;color:var(--gray)}
+.timer-row{display:flex;align-items:center;gap:.7rem;margin-top:.5rem}
+.timer-row input[type=checkbox]{width:auto;accent-color:var(--gl)}
+.timer-row label{margin:0;font-size:.85rem;color:var(--white)}
+.timer-row input[type=number]{width:80px}
 
-/* player card admin */
-.pcard{background:var(--bg2);border:2px solid var(--gl);border-radius:14px;padding:1.2rem 1.5rem;text-align:center;position:relative;overflow:hidden;margin-bottom:.8rem}
-.pcard::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top,#2d9e5c18 0%,transparent 65%);pointer-events:none}
-.p-role{font-family:'Barlow Condensed',sans-serif;font-size:.8rem;letter-spacing:3px;color:var(--gl);text-transform:uppercase}
-.p-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,7vw,4rem);color:var(--white);letter-spacing:2px;line-height:1.1}
-.p-team{font-size:.95rem;color:#6a9a7a;font-weight:500}
-.p-price{font-size:.9rem;color:var(--gold);margin-top:.3rem;font-family:'Barlow Condensed',sans-serif}
-.p-queue{font-size:.78rem;color:#4a7a55;margin-top:.2rem}
+/* ── ADMIN ── */
+#admin{display:none;padding:.8rem;max-width:960px;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem 0;border-bottom:1px solid var(--border);margin-bottom:.8rem;flex-wrap:wrap;gap:.4rem}
+.topbar h1{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:2px}
+.badge{border-radius:20px;padding:.18rem .7rem;font-size:.72rem;font-weight:600}
+.badge-ok{background:#1a3a22;color:var(--gl)}.badge-err{background:#3a1a1a;color:#e07070}
 
-/* bids grid */
-.bids-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem;margin:.4rem 0}
-.btile{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.6rem .9rem;position:relative;transition:border .3s}
-.btile.top{border-color:var(--gold);background:#28260a}
-.btile .cn{font-size:.75rem;color:#6a9a7a;text-transform:uppercase;letter-spacing:1px}
-.btile .ba{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:var(--white);line-height:1}
+/* player card */
+.pcard{background:var(--bg2);border:2px solid var(--gl);border-radius:14px;
+  padding:1.1rem 1.4rem;text-align:center;position:relative;overflow:hidden;margin-bottom:.7rem}
+.pcard::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at top,#2d9e5c18 0%,transparent 65%);pointer-events:none}
+.p-role{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;
+  letter-spacing:3px;color:var(--gl);text-transform:uppercase}
+.p-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,7vw,3.8rem);
+  color:var(--white);letter-spacing:2px;line-height:1.1}
+.p-team{font-size:.9rem;color:var(--gray)}
+.p-price{font-size:.85rem;color:var(--gold);margin-top:.2rem;
+  font-family:'Barlow Condensed',sans-serif}
+
+/* timer display */
+.timer-display{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;
+  color:var(--gold);letter-spacing:4px;text-align:center;line-height:1;
+  transition:color .3s}
+.timer-display.urgent{color:var(--red);animation:blink .5s ease infinite alternate}
+@keyframes blink{from{opacity:1}to{opacity:.4}}
+
+/* bids area */
+.bids-pending{background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:.8rem 1rem;margin:.4rem 0}
+.bid-ghost{display:flex;align-items:center;justify-content:space-between;
+  padding:.35rem 0;border-bottom:1px solid var(--bg4)}
+.bid-ghost:last-child{border:none}
+.bid-ghost .cn{font-size:.85rem;font-weight:600}
+.bid-ghost .hidden-val{font-size:.8rem;color:var(--dim);
+  background:var(--bg4);border-radius:6px;padding:.1rem .5rem}
+
+/* bids revealed grid */
+.bids-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.4rem;margin:.4rem 0}
+.btile{background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:.55rem .85rem;position:relative}
+.btile.top{border-color:var(--gold);background:#26240a}
+.btile .cn{font-size:.72rem;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.btile .ba{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--white);line-height:1}
 .btile.top .ba{color:var(--gold)}
-.btile .bt{font-size:.65rem;color:#3a6a45}
-.crown{position:absolute;top:.35rem;right:.5rem;font-size:.9rem}
+.btile .bt{font-size:.62rem;color:var(--dim)}
+.crown{position:absolute;top:.3rem;right:.45rem;font-size:.85rem}
 
-/* coaches + assigned */
-.coaches-wrap{display:flex;flex-wrap:wrap;gap:.4rem;margin:.4rem 0 .8rem}
-.cchip{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.4rem .75rem;min-width:120px}
-.cchip .cn{font-weight:600;font-size:.88rem}
-.cchip .cb{font-size:.78rem;color:var(--gl)}
-.alist{margin:.4rem 0}
-.aitem{display:flex;align-items:center;gap:.7rem;padding:.4rem .6rem;border-bottom:1px solid #141e18;font-size:.85rem}
+.winner-bar{background:linear-gradient(135deg,#28260a,#342e0a);border:2px solid var(--gold);
+  border-radius:12px;padding:.9rem 1.3rem;text-align:center;margin:.6rem 0}
+.winner-bar h3{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold)}
+.winner-bar p{color:var(--white);font-size:.88rem;margin-top:.2rem}
+
+.coaches-wrap{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0 .7rem}
+.cchip{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.35rem .65rem}
+.cchip .cn{font-weight:600;font-size:.85rem}
+.cchip .cb{font-size:.75rem;color:var(--gl)}
+.cchip.offline{opacity:.5}
+
+.alist{margin:.3rem 0}
+.aitem{display:flex;align-items:center;gap:.6rem;padding:.35rem .5rem;
+  border-bottom:1px solid var(--bg3);font-size:.82rem}
+.aitem .ar{font-size:.67rem;color:var(--gray);background:var(--bg3);
+  border-radius:4px;padding:1px 4px}
 .aitem .ap{font-weight:600;flex:1}
-.aitem .ac{color:#6a9a7a;font-size:.8rem}
-.aitem .am{color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:700}
-.aitem .ar{font-size:.7rem;color:#4a7a55;background:var(--bg3);border-radius:4px;padding:1px 5px}
+.aitem .ac{color:var(--gray);font-size:.78rem}
+.aitem .am{color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700}
 
-/* controls */
-.ctrl{display:flex;gap:.5rem;flex-wrap:wrap;margin:.7rem 0}
-.no-player{text-align:center;padding:2rem 1rem;color:#4a7a55;font-size:.95rem}
-.winner-bar{background:linear-gradient(135deg,#28260a,#342e0a);border:2px solid var(--gold);border-radius:12px;padding:1rem 1.5rem;text-align:center;margin:.7rem 0;animation:pulse 1s ease 3}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 16px 2px #f0c04044}}
-.winner-bar h3{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold)}
-.winner-bar p{color:var(--white);font-size:.9rem;margin-top:.2rem}
+.ctrl{display:flex;gap:.45rem;flex-wrap:wrap;margin:.6rem 0}
+.no-player{text-align:center;padding:1.8rem;color:var(--dim);font-size:.9rem}
 
-/* ── COACH ──────────────────────────────────────── */
-#coach{display:none;min-height:100vh;padding:.8rem}
-.ch-head{text-align:center;padding:.8rem 0 1rem}
-.ch-name{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);letter-spacing:2px}
-.ch-budget{font-size:.95rem;color:var(--gl);font-weight:600}
-.ch-budget span{font-size:1.3rem;color:var(--white)}
+/* export */
+.export-area{margin-top:.8rem;padding:.8rem;background:var(--bg3);
+  border-radius:10px;border:1px solid var(--border)}
 
-.mp-card{background:var(--bg2);border:2px solid var(--gl);border-radius:14px;padding:1.2rem;text-align:center;margin-bottom:1.2rem}
-.mp-role{font-size:.75rem;letter-spacing:3px;color:var(--gl);text-transform:uppercase}
-.mp-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,10vw,3.2rem);color:var(--white);letter-spacing:1px;line-height:1.1}
-.mp-team{font-size:.85rem;color:#6a9a7a}
-.mp-price{font-size:.85rem;color:var(--gold);margin-top:.2rem;font-family:'Barlow Condensed',sans-serif}
+/* ── COACH ── */
+#coach{display:none;min-height:100vh;padding:.75rem}
+.ch-head{text-align:center;padding:.7rem 0 .9rem}
+.ch-name{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);letter-spacing:2px}
+.ch-budget{font-size:.9rem;color:var(--gl);font-weight:600}
+.ch-budget span{font-size:1.2rem;color:var(--white)}
 
-.bid-box{background:var(--bg2);border-radius:14px;padding:1.2rem;text-align:center}
-.bid-hint{font-size:.75rem;color:#6a9a7a;text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem}
-.bid-num{font-family:'Bebas Neue',sans-serif;font-size:5.5rem;color:var(--gold);line-height:1;min-width:140px;display:inline-block;border-bottom:3px solid var(--gold);margin-bottom:.8rem;letter-spacing:2px}
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;max-width:270px;margin:0 auto .8rem}
-.np{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.9rem;font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:700;color:var(--white);cursor:pointer;transition:background .1s;user-select:none;-webkit-user-select:none}
+.mp-card{background:var(--bg2);border:2px solid var(--gl);border-radius:14px;
+  padding:1.1rem;text-align:center;margin-bottom:1rem}
+.mp-role{font-size:.72rem;letter-spacing:3px;color:var(--gl);text-transform:uppercase}
+.mp-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.9rem,9vw,3rem);
+  color:var(--white);letter-spacing:1px;line-height:1.1}
+.mp-team{font-size:.82rem;color:var(--gray)}
+.mp-price{font-size:.82rem;color:var(--gold);font-family:'Barlow Condensed',sans-serif}
+
+/* timer coach */
+.co-timer{text-align:center;margin:.5rem 0}
+.co-timer-num{font-family:'Bebas Neue',sans-serif;font-size:4rem;color:var(--gold);
+  letter-spacing:4px;line-height:1;transition:color .3s}
+.co-timer-num.urgent{color:var(--red);animation:blink .5s ease infinite alternate}
+.co-timer-label{font-size:.72rem;color:var(--gray);text-transform:uppercase;letter-spacing:1px}
+
+.bid-box{background:var(--bg2);border-radius:14px;padding:1.1rem;text-align:center}
+.bid-hint{font-size:.72rem;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem}
+.bid-num{font-family:'Bebas Neue',sans-serif;font-size:5rem;color:var(--gold);
+  line-height:1;min-width:130px;display:inline-block;border-bottom:3px solid var(--gold);
+  margin-bottom:.7rem;letter-spacing:2px}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;max-width:260px;margin:0 auto .7rem}
+.np{background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:.85rem;font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;
+  color:var(--white);cursor:pointer;transition:background .1s;user-select:none;-webkit-user-select:none}
 .np:active{background:#1a3520;transform:scale(.95)}
 .np.del{color:#e07070}
 .np.zero{grid-column:span 2}
-.send{width:100%;max-width:270px;padding:1rem;font-size:1.2rem;background:var(--gold);color:#111;border:none;border-radius:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .15s;display:block;margin:0 auto}
+.send{width:100%;max-width:260px;padding:.9rem;font-size:1.1rem;background:var(--gold);
+  color:#111;border:none;border-radius:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .15s;display:block;margin:0 auto}
 .send:active{transform:scale(.97);background:var(--gold2)}
 .send:disabled{background:#333;color:#666;cursor:not-allowed}
-.my-bid{margin-top:.8rem;padding:.65rem;background:var(--bg3);border-radius:8px;text-align:center;font-size:.85rem;color:#6a9a7a}
-.my-bid strong{color:var(--gold)}
-.wait{text-align:center;padding:3rem 1rem}
-.wait .icon{font-size:2.5rem;margin-bottom:.8rem}
-.wait p{color:#4a7a55;font-size:.95rem;line-height:1.6}
-.w-banner{background:linear-gradient(135deg,#28260a,#342e0a);border:2px solid var(--gold);border-radius:14px;padding:1.5rem;text-align:center;margin:.8rem 0;animation:pulse 1s ease 3}
+.my-bid-info{margin-top:.7rem;padding:.55rem;background:var(--bg3);border-radius:8px;
+  text-align:center;font-size:.82rem;color:var(--gray)}
+.my-bid-info strong{color:var(--gold)}
+.co-wait{text-align:center;padding:2.5rem 1rem}
+.co-wait .ico{font-size:2.2rem;margin-bottom:.7rem}
+.co-wait p{color:var(--dim);font-size:.9rem;line-height:1.5}
+.w-banner{background:linear-gradient(135deg,#28260a,#342e0a);border:2px solid var(--gold);
+  border-radius:14px;padding:1.3rem;text-align:center;margin:.7rem 0}
 .w-banner.lost{border-color:var(--border);background:var(--bg3)}
-.w-banner h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold)}
-.w-banner.lost h2{color:#6a9a7a}
-.w-banner p{color:var(--white);font-size:.95rem;margin-top:.4rem}
+.w-banner h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold)}
+.w-banner.lost h2{color:var(--gray)}
+.w-banner p{color:var(--white);font-size:.9rem;margin-top:.35rem}
+.closed-msg{text-align:center;padding:1.5rem;background:var(--bg3);border-radius:12px;
+  border:1px solid var(--border)}
+.closed-msg h3{font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;
+  color:var(--gray);letter-spacing:2px;text-transform:uppercase}
+.closed-msg p{color:var(--dim);font-size:.82rem;margin-top:.4rem}
 
-/* ── TOAST ──────────────────────────────────────── */
-.toast{position:fixed;top:1rem;left:50%;transform:translateX(-50%);padding:.6rem 1.3rem;border-radius:30px;font-weight:600;font-size:.85rem;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+/* ── TOAST ── */
+.toast{position:fixed;top:.9rem;left:50%;transform:translateX(-50%);
+  padding:.55rem 1.2rem;border-radius:30px;font-weight:600;font-size:.82rem;
+  z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;
+  white-space:nowrap;max-width:92vw;text-align:center}
 .toast.show{opacity:1}
-.toast.ok{background:#1a5a30;color:#a0ffb8;border:1px solid #2d9e5c}
+.toast.ok{background:#1a5a30;color:#a0ffb8;border:1px solid var(--gl)}
 .toast.err{background:#5a1a1a;color:#ffb0b0;border:1px solid var(--red)}
-.toast.info{background:#2a2010;color:#ffd878;border:1px solid var(--gold)}
-
-/* ── MISC ───────────────────────────────────────── */
-.flex-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-.pill{font-size:.72rem;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:.15rem .55rem;color:#6a9a7a}
-.dim{color:#4a7a55;font-size:.82rem}
+.toast.info{background:#28200a;color:#ffd878;border:1px solid var(--gold)}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════ SETUP ══ -->
+<!-- ═══════════════ SETUP ═══════════════ -->
 <div id="setup">
   <div class="logo">Asta<br>Fanta<br>calcio<span>Sistema d'asta in tempo reale</span></div>
 
   <div class="card">
     <h2>Entra come</h2>
-    <div class="btn-row">
-      <button class="btn btn-gold" onclick="showPanel('admin-setup')">🖥 Admin</button>
-      <button class="btn btn-out" onclick="showPanel('coach-setup')">📱 Allenatore</button>
+    <div class="row">
+      <button class="btn btn-gold" onclick="show('a-setup')">🖥 Admin</button>
+      <button class="btn btn-out" onclick="show('c-setup')">📱 Allenatore</button>
     </div>
   </div>
 
   <!-- Admin setup -->
-  <div class="card" id="admin-setup" style="display:none">
+  <div class="card hidden" id="a-setup">
     <h2>Configurazione Admin</h2>
-    <label>Indirizzo WebSocket del server</label>
-    <input id="ws-admin" type="text" placeholder="wss://tuo-server.railway.app  oppure  ws://localhost:3000">
-    <p class="wsurl" id="ws-hint">Lascia vuoto per usare lo stesso host della pagina</p>
+    <label>Indirizzo WebSocket</label>
+    <input id="ws-a" type="text" placeholder="wss://tuo-server.railway.app  o  ws://localhost:3000">
 
-    <label>Lista giocatori — Carica CSV Fantacalcio.it</label>
-    <label class="file-label">
-      <input type="file" id="csv-file" accept=".csv,.xlsx,.txt" onchange="loadCSV(this)">
-      <span id="csv-label">📂 Clicca per caricare il CSV</span>
+    <label>Lista giocatori — carica CSV Fantacalcio.it</label>
+    <label class="file-drop">
+      <input type="file" id="csv-file" accept=".csv,.txt" onchange="loadCSV(this)">
+      <span id="csv-lbl" class="fl">📂 Clicca per caricare il CSV</span>
     </label>
-    <p class="dim" style="margin-top:.4rem">Formato CSV: <code>Id;R;Nome;Squadra;Qt.A;Qt.I</code> (lista ufficiale Fantacalcio.it) oppure inserisci manualmente sotto ↓</p>
+    <p class="dim" style="margin:.3rem 0 .1rem">Oppure inserisci manualmente: Nome, Ruolo, Squadra, Crediti</p>
+    <textarea id="manual-txt" placeholder="Vlahovic, ATT, Juventus, 1&#10;Theo Hernandez, DIF, Milan, 1"></textarea>
 
-    <label>Oppure inserisci giocatori manualmente (Nome, Ruolo, Squadra, Crediti — uno per riga)</label>
-    <textarea id="manual-players" placeholder="Vlahovic, ATT, Juventus, 1&#10;Theo Hernandez, DIF, Milan, 1&#10;Di Lorenzo, DIF, Napoli, 1&#10;Barella, CEN, Inter, 1"></textarea>
-
-    <div id="players-preview" style="display:none;margin-top:.6rem">
-      <span class="dim" id="players-count"></span>
+    <label>Timer offerte</label>
+    <div class="timer-row">
+      <input type="checkbox" id="timer-on" onchange="updateTimerUI()">
+      <label for="timer-on">Attiva timer</label>
+      <input type="number" id="timer-sec" value="60" min="5" max="300" style="width:70px">
+      <span class="dim">secondi</span>
     </div>
 
-    <button class="btn btn-gold" onclick="connectAdmin()" style="margin-top:1rem;width:100%">⚡ Connetti e Avvia Asta</button>
+    <button class="btn btn-gold" onclick="connectAdmin()" style="margin-top:1rem;width:100%">⚡ Avvia Asta</button>
   </div>
 
   <!-- Coach setup -->
-  <div class="card" id="coach-setup" style="display:none">
+  <div class="card hidden" id="c-setup">
     <h2>Accedi come Allenatore</h2>
-    <label>Indirizzo server (fornito dall'admin)</label>
-    <input id="ws-coach" type="text" placeholder="wss://tuo-server.railway.app">
-    <label>Il tuo nome</label>
-    <input id="coach-name" type="text" placeholder="es. Mister Rossi" maxlength="24">
-    <label>Budget iniziale (crediti)</label>
-    <input id="coach-budget" type="number" value="500" min="1" max="9999">
+    <label>Indirizzo server</label>
+    <input id="ws-c" type="text" placeholder="wss://tuo-server.railway.app">
+    <label>Il tuo PIN personale (sceglilo tu, es. il tuo numero di maglia)</label>
+    <input id="pin-in" type="number" placeholder="es. 1234" maxlength="8">
+    <p class="dim" style="margin:.3rem 0 .5rem">Usa sempre lo stesso PIN per ritrovare il tuo profilo e il budget.</p>
+    <div id="pin-new-fields">
+      <label>Il tuo nome (solo prima volta)</label>
+      <input id="coach-nm" type="text" placeholder="es. Mister Rossi" maxlength="24">
+      <label>Budget iniziale (solo prima volta)</label>
+      <input id="coach-bud" type="number" value="500" min="1">
+    </div>
     <button class="btn btn-g" onclick="connectCoach()" style="margin-top:1rem;width:100%">🔌 Connetti</button>
   </div>
 </div>
 
-<!-- ═════════════════════════════════════════════ ADMIN ══ -->
+<!-- ═══════════════ ADMIN ═══════════════ -->
 <div id="admin">
   <div class="topbar">
     <h1>⚽ Asta Fantacalcio</h1>
-    <div class="flex-row">
+    <div class="row" style="gap:.4rem;align-items:center">
       <span class="badge badge-err" id="conn-badge">Offline</span>
       <span class="dim" id="queue-info"></span>
     </div>
@@ -200,331 +276,359 @@ textarea{resize:vertical;min-height:100px;font-size:.85rem}
 
   <!-- Giocatore corrente -->
   <div class="sec">Giocatore in asta</div>
-  <div id="pcard" class="pcard" style="display:none">
-    <div class="p-role" id="ap-role"></div>
-    <div class="p-name" id="ap-name"></div>
-    <div class="p-team" id="ap-team"></div>
-    <div class="p-price" id="ap-price"></div>
-    <div class="p-queue" id="ap-queue"></div>
+  <div id="a-pcard" class="pcard hidden">
+    <div class="p-role" id="a-role"></div>
+    <div class="p-name" id="a-pname"></div>
+    <div class="p-team" id="a-team"></div>
+    <div class="p-price" id="a-price"></div>
   </div>
-  <div id="no-player" class="no-player">Nessun giocatore in asta — premi "Prossimo"</div>
+  <div id="a-nop" class="no-player">Nessun giocatore in asta — premi "Prossimo"</div>
 
-  <!-- Winner banner (dopo chiusura) -->
-  <div id="winner-bar" class="winner-bar" style="display:none">
-    <h3 id="wb-title">🏆</h3>
-    <p id="wb-desc"></p>
+  <!-- Timer admin -->
+  <div id="a-timer-wrap" class="hidden" style="text-align:center;margin:.5rem 0">
+    <div class="timer-display" id="a-timer-disp">0:00</div>
   </div>
 
-  <!-- Controlli admin -->
+  <!-- Offerte in sospeso (non rivelate) -->
+  <div id="a-bids-pending" class="hidden">
+    <div class="sec">Offerte ricevute <span id="bid-count-badge" class="pill">0</span></div>
+    <div class="bids-pending" id="a-bid-ghosts"></div>
+  </div>
+
+  <!-- Offerte rivelate -->
+  <div id="a-bids-revealed" class="hidden">
+    <div class="sec">Offerte svelate</div>
+    <div class="bids-grid" id="a-bids-grid"></div>
+  </div>
+
+  <!-- Winner bar -->
+  <div id="a-winner-bar" class="winner-bar hidden">
+    <h3 id="a-wb-title"></h3>
+    <p id="a-wb-desc"></p>
+  </div>
+
+  <!-- Controlli -->
   <div class="ctrl">
-    <button class="btn btn-g" id="btn-next" onclick="send({type:'next_player'})">▶ Prossimo</button>
-    <button class="btn btn-red" id="btn-close" onclick="send({type:'close_bidding'})" style="display:none">🔒 Chiudi offerte</button>
-    <button class="btn btn-gold" id="btn-assign" onclick="send({type:'confirm_assign'})" style="display:none">✅ Assegna</button>
-    <button class="btn btn-out" id="btn-skip" onclick="send({type:'skip_player'})" style="display:none">⏭ Salta</button>
+    <button class="btn btn-g" onclick="snd({type:'next_player'})">▶ Prossimo</button>
+    <button class="btn btn-red hidden" id="btn-close" onclick="snd({type:'close_bidding'})">🔒 Chiudi offerte</button>
+    <button class="btn btn-reveal hidden" id="btn-reveal" onclick="snd({type:'reveal_bids'})">👁 Scopri offerte</button>
+    <button class="btn btn-gold hidden" id="btn-assign" onclick="snd({type:'confirm_assign'})">✅ Assegna</button>
+    <button class="btn btn-out hidden" id="btn-skip" onclick="snd({type:'skip_player'})">⏭ Salta</button>
   </div>
-
-  <!-- Offerte -->
-  <div class="sec">Offerte in tempo reale</div>
-  <div class="bids-grid" id="bids-grid"><span class="dim">Nessuna offerta</span></div>
 
   <!-- Allenatori -->
-  <div class="sec">Allenatori connessi</div>
-  <div class="coaches-wrap" id="coaches-wrap"><span class="dim">Nessuno connesso</span></div>
+  <div class="sec">Allenatori</div>
+  <div class="coaches-wrap" id="a-coaches"><span class="dim">—</span></div>
 
-  <!-- Assegnazioni -->
-  <div class="sec">Assegnazioni completate</div>
-  <div class="alist" id="alist"><span class="dim">—</span></div>
+  <!-- Assegnazioni + export -->
+  <div class="sec">Assegnazioni</div>
+  <div class="alist" id="a-alist"><span class="dim">—</span></div>
+  <div class="export-area">
+    <div class="row" style="gap:.5rem;align-items:center;margin-bottom:.4rem">
+      <span style="font-size:.82rem;color:var(--gray)">Esporta per Leghe Fantacalcio.it</span>
+      <button class="btn btn-out" style="padding:.35rem .8rem;font-size:.8rem" onclick="exportCSV()">📥 Scarica CSV</button>
+    </div>
+    <p class="dim">Il file CSV generato è compatibile con la funzione "Importa" di Leghe Fantacalcio (Admin → Gestione Rose).</p>
+  </div>
 </div>
 
-<!-- ══════════════════════════════════════════════ COACH ══ -->
+<!-- ═══════════════ COACH ═══════════════ -->
 <div id="coach">
   <div class="ch-head">
-    <div class="ch-name" id="my-name">—</div>
-    <div class="ch-budget">Budget: <span id="my-budget">—</span> cr</div>
+    <div class="ch-name" id="co-myname">—</div>
+    <div class="ch-budget">Budget: <span id="co-mybudget">—</span> cr</div>
   </div>
 
   <!-- In attesa -->
-  <div id="co-wait" class="wait">
-    <div class="icon">⏳</div>
+  <div id="co-wait" class="co-wait">
+    <div class="ico">⏳</div>
     <p>In attesa del<br>prossimo giocatore...</p>
   </div>
 
   <!-- Asta aperta -->
-  <div id="co-auction" style="display:none">
+  <div id="co-auction" class="hidden">
     <div class="mp-card">
       <div class="mp-role" id="co-role"></div>
-      <div class="mp-name" id="co-name-p"></div>
+      <div class="mp-name" id="co-pname"></div>
       <div class="mp-team" id="co-team"></div>
       <div class="mp-price" id="co-price"></div>
     </div>
+    <!-- Timer coach -->
+    <div id="co-timer-wrap" class="co-timer hidden">
+      <div class="co-timer-label">Tempo rimasto</div>
+      <div class="co-timer-num" id="co-timer-disp">0:00</div>
+    </div>
     <div class="bid-box">
       <div class="bid-hint">La tua offerta</div>
-      <div class="bid-num" id="bid-disp">0</div>
+      <div class="bid-num" id="co-bid-disp">0</div>
       <div class="numpad">
-        <button class="np" onclick="nIn('1')">1</button>
-        <button class="np" onclick="nIn('2')">2</button>
-        <button class="np" onclick="nIn('3')">3</button>
-        <button class="np" onclick="nIn('4')">4</button>
-        <button class="np" onclick="nIn('5')">5</button>
-        <button class="np" onclick="nIn('6')">6</button>
-        <button class="np" onclick="nIn('7')">7</button>
-        <button class="np" onclick="nIn('8')">8</button>
-        <button class="np" onclick="nIn('9')">9</button>
-        <button class="np del" onclick="nDel()">⌫</button>
-        <button class="np zero" onclick="nIn('0')">0</button>
+        <button class="np" onclick="nI('1')">1</button>
+        <button class="np" onclick="nI('2')">2</button>
+        <button class="np" onclick="nI('3')">3</button>
+        <button class="np" onclick="nI('4')">4</button>
+        <button class="np" onclick="nI('5')">5</button>
+        <button class="np" onclick="nI('6')">6</button>
+        <button class="np" onclick="nI('7')">7</button>
+        <button class="np" onclick="nI('8')">8</button>
+        <button class="np" onclick="nI('9')">9</button>
+        <button class="np del" onclick="nD()">⌫</button>
+        <button class="np zero" onclick="nI('0')">0</button>
       </div>
-      <button class="send" id="send-btn" onclick="submitBid()">💸 Invia Offerta</button>
-      <div class="my-bid" id="my-bid-info" style="display:none"></div>
+      <button class="send" id="co-send" onclick="submitBid()">💸 Invia Offerta</button>
+      <div class="my-bid-info hidden" id="co-mybid-info"></div>
     </div>
   </div>
 
-  <!-- Offerte chiuse -->
-  <div id="co-closed" style="display:none">
-    <div class="w-banner" id="w-banner">
-      <h2 id="w-title"></h2>
-      <p id="w-desc"></p>
+  <!-- Offerte chiuse, in attesa di scoperta -->
+  <div id="co-closed" class="hidden">
+    <div class="closed-msg">
+      <h3>⏸ Offerte chiuse</h3>
+      <p>In attesa che l'admin riveli le offerte...</p>
+    </div>
+    <div class="my-bid-info" id="co-mybid-closed" style="margin-top:.7rem;display:none"></div>
+  </div>
+
+  <!-- Risultato rivelato -->
+  <div id="co-revealed" class="hidden">
+    <div class="w-banner" id="co-result-banner">
+      <h2 id="co-res-title"></h2>
+      <p id="co-res-desc"></p>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Globals ──────────────────────────────────────────────────────────────────
+// ═══════════════ GLOBALS ═══════════════
 let ws, myRole, myCoachId, myCoachName;
-let currentBid = '';
+let curBid = '';
 let parsedPlayers = [];
 
-function uid() { return Math.random().toString(36).slice(2,10); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
-// ── Toast ────────────────────────────────────────────────────────────────────
-let toastTimer;
-function toast(msg, type = 'ok', ms = 2800) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `toast ${type} show`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+// ═══════════════ TOAST ═══════════════
+let tTimer;
+function toast(msg, type='ok', ms=2800){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast ${type} show`;
+  clearTimeout(tTimer); tTimer=setTimeout(()=>el.classList.remove('show'),ms);
 }
 
-// ── Setup panels ─────────────────────────────────────────────────────────────
-function showPanel(id) {
-  ['admin-setup','coach-setup'].forEach(p => {
-    document.getElementById(p).style.display = p === id ? 'block' : 'none';
-  });
-  // Pre-fill WS URL basato sull'host corrente
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const auto = `${proto}://${location.host}`;
-  if (id === 'admin-setup') document.getElementById('ws-admin').placeholder = auto;
-  if (id === 'coach-setup') document.getElementById('ws-coach').value = auto;
-}
-
-// ── CSV Loader ───────────────────────────────────────────────────────────────
-function loadCSV(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const text = e.target.result;
-    parsedPlayers = parseFantacalcioCSV(text);
-    if (parsedPlayers.length) {
-      document.getElementById('csv-label').innerHTML = `<strong>✅ ${parsedPlayers.length} giocatori caricati: ${file.name}</strong>`;
-      document.getElementById('players-preview').style.display = 'block';
-      document.getElementById('players-count').textContent =
-        `Portieri: ${parsedPlayers.filter(p=>p.role==='P').length} | `+
-        `Difensori: ${parsedPlayers.filter(p=>p.role==='D').length} | `+
-        `Centrocampisti: ${parsedPlayers.filter(p=>p.role==='C').length} | `+
-        `Attaccanti: ${parsedPlayers.filter(p=>p.role==='A').length}`;
-      toast(`✅ Caricati ${parsedPlayers.length} giocatori`, 'ok');
-    } else {
-      toast('⚠️ Formato CSV non riconosciuto', 'err');
-    }
-  };
-  reader.readAsText(file, 'utf-8');
-}
-
-// Parser CSV ufficiale Fantacalcio.it (separatore ; o ,)
-// Colonne: Id;R;Nome;Squadra;Qt.A;Qt.I  (o varianti)
-function parseFantacalcioCSV(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  if (!lines.length) return [];
-  const sep = lines[0].includes(';') ? ';' : ',';
-  const header = lines[0].toLowerCase().split(sep).map(h => h.trim().replace(/[^a-z0-9]/g,''));
-  const iRole  = header.findIndex(h => h === 'r' || h === 'ruolo');
-  const iName  = header.findIndex(h => h.includes('nome'));
-  const iTeam  = header.findIndex(h => h.includes('squad'));
-  const iQt    = header.findIndex(h => h.startsWith('qt'));
-  if (iName < 0) return [];
-  const roleMap = {'P':'P','D':'D','C':'C','A':'A','T':'C','W':'C','M':'C','Pc':'A','As':'D'};
-  return lines.slice(1).map(line => {
-    const cols = line.split(sep).map(c => c.trim().replace(/^"|"$/g,''));
-    const rawRole = iRole >= 0 ? (cols[iRole]||'').toUpperCase() : '?';
-    return {
-      name:  iName >= 0 ? cols[iName] : '?',
-      role:  roleMap[rawRole] || rawRole,
-      team:  iTeam >= 0 ? cols[iTeam] : '?',
-      base:  iQt >= 0 ? (parseInt(cols[iQt]) || 1) : 1
-    };
-  }).filter(p => p.name && p.name.length > 1);
-}
-
-// Parser manuale (Nome, Ruolo, Squadra, Crediti)
-function parseManual(text) {
-  return text.split('\n').filter(l=>l.trim()).map(line => {
-    const p = line.split(',').map(s=>s.trim());
-    return { name: p[0]||'?', role: (p[1]||'—').toUpperCase(), team: p[2]||'—', base: parseInt(p[3])||1 };
-  }).filter(p => p.name.length > 0);
-}
-
-// ── Connect Admin ─────────────────────────────────────────────────────────────
-function connectAdmin() {
-  // Determina lista giocatori
-  let players = parsedPlayers;
-  if (!players.length) {
-    const manual = document.getElementById('manual-players').value.trim();
-    if (manual) players = parseManual(manual);
+// ═══════════════ HELPERS ═══════════════
+function show(id){
+  ['a-setup','c-setup'].forEach(p=>document.getElementById(p).classList.toggle('hidden',p!==id));
+  if(id==='c-setup'){
+    const proto=location.protocol==='https:'?'wss':'ws';
+    document.getElementById('ws-c').value=`${proto}://${location.host}`;
   }
-  if (!players.length) { toast('⚠️ Inserisci almeno un giocatore', 'err'); return; }
+}
 
-  const rawUrl = document.getElementById('ws-admin').value.trim();
-  const wsUrl  = rawUrl || buildAutoWsUrl();
-  myRole = 'admin';
-  initWS(wsUrl, () => {
-    send({ type: 'register_admin' });
-    send({ type: 'set_players', players });
-    document.getElementById('setup').style.display = 'none';
-    document.getElementById('admin').style.display = 'block';
+function $(id){ return document.getElementById(id); }
+function toggleEl(id,show){ $(id).classList.toggle('hidden',!show); }
+function fmt(sec){ const m=Math.floor(sec/60),s=sec%60; return `${m}:${s.toString().padStart(2,'0')}`; }
+
+function updateTimerUI(){
+  const on=$('timer-on').checked;
+  $('timer-sec').disabled=!on;
+}
+updateTimerUI();
+
+// ═══════════════ CSV PARSER ═══════════════
+function loadCSV(input){
+  const file=input.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    parsedPlayers=parseFantaCSV(e.target.result);
+    if(parsedPlayers.length){
+      $('csv-lbl').innerHTML=`<strong>✅ ${parsedPlayers.length} giocatori: ${file.name}</strong>`;
+      toast(`✅ ${parsedPlayers.length} giocatori caricati`,'ok');
+    } else toast('⚠️ Formato CSV non riconosciuto','err');
+  };
+  r.readAsText(file,'utf-8');
+}
+
+function parseFantaCSV(text){
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) return [];
+  const sep=lines[0].includes(';')?';':',';
+  const hdr=lines[0].toLowerCase().split(sep).map(h=>h.replace(/[^a-z0-9]/g,''));
+  const iR=hdr.findIndex(h=>h==='r'||h==='ruolo');
+  const iN=hdr.findIndex(h=>h.includes('nome'));
+  const iS=hdr.findIndex(h=>h.includes('squad'));
+  const iQ=hdr.findIndex(h=>h.startsWith('qt')||h.startsWith('qu'));
+  const iId=hdr.findIndex(h=>h==='id');
+  if(iN<0) return [];
+  const RM={'P':'P','D':'D','C':'C','A':'A','T':'C','W':'C','M':'C','PC':'A','AS':'D'};
+  return lines.slice(1).map(line=>{
+    const c=line.split(sep).map(x=>x.trim().replace(/^"|"$/g,''));
+    const r=iR>=0?(c[iR]||'').toUpperCase():'?';
+    return { id: iId>=0?c[iId]:'', name:iN>=0?c[iN]:'?', role:RM[r]||r, team:iS>=0?c[iS]:'?', base:iQ>=0?(parseInt(c[iQ])||1):1 };
+  }).filter(p=>p.name&&p.name.length>1);
+}
+
+function parseManual(text){
+  return text.split('\n').filter(l=>l.trim()).map(line=>{
+    const p=line.split(',').map(s=>s.trim());
+    return { id:'', name:p[0]||'?', role:(p[1]||'?').toUpperCase(), team:p[2]||'?', base:parseInt(p[3])||1 };
+  }).filter(p=>p.name.length>0);
+}
+
+// ═══════════════ CONNECT ═══════════════
+function buildWsUrl(raw){
+  if(raw) return raw;
+  return (location.protocol==='https:'?'wss':'ws')+'://'+location.host;
+}
+
+function connectAdmin(){
+  let players=parsedPlayers;
+  if(!players.length){ const m=$('manual-txt').value.trim(); if(m) players=parseManual(m); }
+  if(!players.length){ toast('Inserisci almeno un giocatore','err'); return; }
+  const wsUrl=buildWsUrl($('ws-a').value.trim());
+  myRole='admin';
+  initWS(wsUrl,()=>{
+    snd({type:'register_admin'});
+    snd({type:'set_players',players});
+    snd({type:'set_timer',enabled:$('timer-on').checked,duration:parseInt($('timer-sec').value)||60});
+    $('setup').classList.add('hidden');
+    $('admin').style.display='block';
   });
 }
 
-// ── Connect Coach ─────────────────────────────────────────────────────────────
-function connectCoach() {
-  myCoachName = document.getElementById('coach-name').value.trim();
-  const budget = parseInt(document.getElementById('coach-budget').value) || 500;
-  const rawUrl = document.getElementById('ws-coach').value.trim();
-  const wsUrl  = rawUrl || buildAutoWsUrl();
-  if (!myCoachName) { toast('Inserisci il tuo nome', 'err'); return; }
-  myCoachId = uid();
-  myRole = 'coach';
-  initWS(wsUrl, () => {
-    send({ type: 'register_coach', coachId: myCoachId, coachName: myCoachName, budget });
-    document.getElementById('setup').style.display = 'none';
-    document.getElementById('coach').style.display = 'block';
-    document.getElementById('my-name').textContent = myCoachName;
-    document.getElementById('my-budget').textContent = budget;
+function connectCoach(){
+  const pin=String($('pin-in').value).trim();
+  if(!pin){ toast('Inserisci il PIN','err'); return; }
+  const wsUrl=buildWsUrl($('ws-c').value.trim());
+  myRole='coach';
+  initWS(wsUrl,()=>{
+    snd({ type:'register_coach', pin,
+      coachName:$('coach-nm').value.trim()||'Coach',
+      budget:parseInt($('coach-bud').value)||500 });
+    $('setup').classList.add('hidden');
+    $('coach').style.display='block';
   });
 }
 
-function buildAutoWsUrl() {
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  return `${proto}://${location.host}`;
+function initWS(url,onOpen){
+  ws=new WebSocket(url);
+  ws.onopen=()=>{ onOpen(); setBadge(true); };
+  ws.onmessage=e=>handleMsg(JSON.parse(e.data));
+  ws.onerror=()=>toast('❌ Errore connessione','err',5000);
+  ws.onclose=()=>{ setBadge(false); toast('⚠️ Connessione persa — ricarica','err',7000); };
+}
+function snd(obj){ if(ws&&ws.readyState===1) ws.send(JSON.stringify(obj)); }
+function setBadge(ok){
+  const el=$('conn-badge'); if(!el) return;
+  el.textContent=ok?'Connesso ✓':'Offline';
+  el.className='badge '+(ok?'badge-ok':'badge-err');
 }
 
-// ── WebSocket ─────────────────────────────────────────────────────────────────
-function initWS(url, onOpen) {
-  ws = new WebSocket(url);
-  ws.onopen = () => { onOpen(); setBadge(true); };
-  ws.onmessage = e => handleMsg(JSON.parse(e.data));
-  ws.onerror = () => toast('❌ Errore connessione al server', 'err', 5000);
-  ws.onclose = () => { setBadge(false); toast('⚠️ Connessione persa — ricarica la pagina', 'err', 7000); };
-}
-function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
-
-function setBadge(ok) {
-  const el = document.getElementById('conn-badge');
-  if (!el) return;
-  el.textContent = ok ? 'Connesso ✓' : 'Offline';
-  el.className = `badge ${ok ? 'badge-ok' : 'badge-err'}`;
-}
-
-// ── Message handler ──────────────────────────────────────────────────────────
-function handleMsg(msg) {
-  switch (msg.type) {
-    case 'state':         renderState(msg.state); break;
-    case 'registered':    setBadge(true); break;
-    case 'players_loaded':toast(`✅ ${msg.count} giocatori caricati e rimescolati`, 'ok'); break;
-    case 'new_player':
-      currentBid = ''; updateBidDisp();
-      if (myRole === 'coach') showCoachAuction(msg.player);
-      else toast(`⚽ In asta: ${msg.player.name}`, 'info');
+// ═══════════════ MESSAGES ═══════════════
+function handleMsg(msg){
+  switch(msg.type){
+    case 'state':           renderState(msg.state); break;
+    case 'registered':
+      setBadge(true);
+      if(msg.role==='coach'){
+        myCoachId=msg.coachId; myCoachName=msg.coachName;
+        $('co-myname').textContent=msg.coachName;
+        $('co-mybudget').textContent=msg.budget;
+      }
       break;
-    case 'new_bid':
-      if (myRole === 'admin') toast(`💰 ${msg.bid.coachName}: ${msg.bid.amount} cr`, 'info', 1800);
+    case 'players_loaded':  toast(`✅ ${msg.count} giocatori caricati e rimescolati`,'ok'); break;
+    case 'new_player':
+      curBid=''; updBidDisp();
+      if(myRole==='coach') showCoachAuction(msg.player);
+      else toast(`⚽ In asta: ${msg.player.name}`,'info');
+      break;
+    case 'bid_received':
+      if(myRole==='admin') toast(`📩 Offerta da ${msg.coachName}`,'info',1500);
       break;
     case 'bidding_closed':
-      if (myRole === 'admin') showWinnerBar(msg.winner, msg.player);
-      if (myRole === 'coach') showCoachClosed(msg.winner, msg.player);
+      if(myRole==='coach') showCoachClosed();
       break;
-    case 'auction_ended':
-      toast('🏁 Asta completata! Tutti i giocatori sono stati chiamati.', 'ok', 6000);
+    case 'bids_revealed':
+      if(myRole==='admin') showAdminRevealed(msg.winner,msg.player);
+      if(myRole==='coach') showCoachResult(msg.winner,msg.player,msg.auto);
       break;
-    case 'bid_error':
-      toast(`⚠️ ${msg.error}`, 'err');
-      break;
+    case 'auction_ended':   toast('🏁 Asta completata!','ok',6000); break;
+    case 'bid_error':       toast(`⚠️ ${msg.error}`,'err'); break;
+    case 'reg_error':       toast(`⚠️ ${msg.error}`,'err'); break;
   }
 }
 
-// ── Render state ─────────────────────────────────────────────────────────────
-function renderState(state) {
-  if (myRole === 'admin') renderAdmin(state);
-  if (myRole === 'coach') renderCoach(state);
+// ═══════════════ RENDER STATE ═══════════════
+function renderState(s){
+  if(myRole==='admin') renderAdmin(s);
+  if(myRole==='coach') renderCoach(s);
 }
 
-function renderAdmin(s) {
+function renderAdmin(s){
   // Queue info
-  document.getElementById('queue-info').textContent =
-    s.queue ? `${s.queue.length} giocatori rimasti` : '';
+  $('queue-info').textContent=s.queue?`${s.queue.length} rimasti`:'';
 
   // Player card
-  if (s.currentPlayer) {
-    document.getElementById('pcard').style.display = '';
-    document.getElementById('no-player').style.display = 'none';
-    document.getElementById('ap-role').textContent = s.currentPlayer.role;
-    document.getElementById('ap-name').textContent = s.currentPlayer.name;
-    document.getElementById('ap-team').textContent = s.currentPlayer.team;
-    document.getElementById('ap-price').textContent = `Base: ${s.currentPlayer.base} cr`;
-    document.getElementById('ap-queue').textContent = s.queue ? `${s.queue.length} ancora in coda` : '';
-    document.getElementById('btn-close').style.display = s.auctionActive ? '' : 'none';
-    document.getElementById('btn-skip').style.display  = !s.auctionActive ? '' : 'none';
-    document.getElementById('btn-assign').style.display = (!s.auctionActive && s.bids?.length) ? '' : 'none';
+  if(s.currentPlayer){
+    toggleEl('a-pcard',true); toggleEl('a-nop',false);
+    $('a-role').textContent=s.currentPlayer.role;
+    $('a-pname').textContent=s.currentPlayer.name;
+    $('a-team').textContent=s.currentPlayer.team;
+    $('a-price').textContent=`Base: ${s.currentPlayer.base} cr`;
   } else {
-    document.getElementById('pcard').style.display = 'none';
-    document.getElementById('no-player').style.display = '';
-    document.getElementById('btn-close').style.display = 'none';
-    document.getElementById('btn-assign').style.display = 'none';
-    document.getElementById('btn-skip').style.display = 'none';
-    document.getElementById('winner-bar').style.display = 'none';
+    toggleEl('a-pcard',false); toggleEl('a-nop',true);
+    toggleEl('a-winner-bar',false);
+    toggleEl('a-bids-pending',false); toggleEl('a-bids-revealed',false);
   }
 
+  // Timer admin
+  const timerActive=s.timer&&s.timer.running;
+  const timerWaiting=s.timer&&s.timer.enabled&&s.currentPlayer&&!s.auctionActive&&!s.bidsRevealed;
+  toggleEl('a-timer-wrap',timerActive||timerWaiting);
+  if(s.timer){
+    const disp=$('a-timer-disp');
+    disp.textContent=fmt(s.timer.remaining||0);
+    disp.className='timer-display'+(s.timer.remaining<=10&&s.timer.running?' urgent':'');
+  }
+
+  // Bottoni controllo
+  toggleEl('btn-close', !!(s.currentPlayer&&s.auctionActive));
+  toggleEl('btn-reveal', !!(s.currentPlayer&&!s.auctionActive&&!s.bidsRevealed&&s.bids&&s.bids.length));
+  toggleEl('btn-assign', !!(s.currentPlayer&&s.bidsRevealed&&s.bids&&s.bids.length));
+  toggleEl('btn-skip',   !!(s.currentPlayer&&!s.auctionActive));
+
   // Bids
-  const bids = s.bids || [];
-  const top = bids.reduce((t,b) => !t ? b : b.amount>t.amount ? b : b.amount===t.amount&&b.timestamp<t.timestamp ? b : t, null);
-  document.getElementById('bids-grid').innerHTML = bids.length
-    ? bids.slice().sort((a,b)=>b.amount-a.amount).map(b => {
-        const isTop = top && b.coachId === top.coachId;
-        const t = new Date(b.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-        return `<div class="btile${isTop?' top':''}">
-          ${isTop?'<span class="crown">👑</span>':''}
-          <div class="cn">${b.coachName}</div>
-          <div class="ba">${b.amount}</div>
-          <div class="bt">${t}</div>
-        </div>`;
-      }).join('')
-    : '<span class="dim">Nessuna offerta</span>';
+  const bids=s.bids||[];
+  if(s.bidsRevealed){
+    toggleEl('a-bids-pending',false); toggleEl('a-bids-revealed',true);
+    renderRevealedBids(bids);
+    toggleEl('a-winner-bar',false);
+  } else if(bids.length&&s.currentPlayer){
+    toggleEl('a-bids-pending',true); toggleEl('a-bids-revealed',false);
+    $('bid-count-badge').textContent=bids.length;
+    $('a-bid-ghosts').innerHTML=bids.map(b=>
+      `<div class="bid-ghost">
+        <span class="cn">📩 ${b.coachName}</span>
+        <span class="hidden-val">offerta inviata</span>
+      </div>`
+    ).join('');
+  } else if(s.currentPlayer){
+    toggleEl('a-bids-pending',true); toggleEl('a-bids-revealed',false);
+    $('bid-count-badge').textContent='0';
+    $('a-bid-ghosts').innerHTML='<span class="dim">Nessuna offerta ancora</span>';
+  } else {
+    toggleEl('a-bids-pending',false); toggleEl('a-bids-revealed',false);
+  }
 
   // Coaches
-  const coaches = s.coaches || {};
-  document.getElementById('coaches-wrap').innerHTML = Object.values(coaches).length
-    ? Object.values(coaches).map(c =>
+  $('a-coaches').innerHTML=Object.values(s.coaches||{}).length
+    ?Object.values(s.coaches).map(c=>
         `<div class="cchip"><div class="cn">${c.name}</div><div class="cb">${c.budget} cr</div></div>`
       ).join('')
-    : '<span class="dim">Nessun allenatore connesso</span>';
+    :'<span class="dim">Nessun allenatore connesso</span>';
 
   // Assigned
-  const assigned = s.assigned || [];
-  document.getElementById('alist').innerHTML = assigned.length
-    ? assigned.slice().reverse().map(a =>
+  $('a-alist').innerHTML=(s.assigned||[]).length
+    ?(s.assigned).slice().reverse().map(a=>
         `<div class="aitem">
           <span class="ar">${a.player.role}</span>
           <span class="ap">${a.player.name}</span>
@@ -532,82 +636,162 @@ function renderAdmin(s) {
           <span class="am">${a.amount} cr</span>
         </div>`
       ).join('')
-    : '<span class="dim">—</span>';
+    :'<span class="dim">—</span>';
 }
 
-function showWinnerBar(winner, player) {
-  const el = document.getElementById('winner-bar');
-  el.style.display = '';
-  if (winner) {
-    document.getElementById('wb-title').textContent = `🏆 ${winner.coachName}`;
-    document.getElementById('wb-desc').textContent  = `${player?.name} aggiudicato per ${winner.amount} crediti`;
+function renderRevealedBids(bids){
+  const top=bids.reduce((t,b)=>!t?b:b.amount>t.amount?b:b.amount===t.amount&&b.timestamp<t.timestamp?b:t,null);
+  $('a-bids-grid').innerHTML=bids.length
+    ?bids.slice().sort((a,b)=>b.amount-a.amount).map(b=>{
+        const isTop=top&&b.coachId===top.coachId;
+        const ts=new Date(b.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        return `<div class="btile${isTop?' top':''}">
+          ${isTop?'<span class="crown">👑</span>':''}
+          <div class="cn">${b.coachName}</div>
+          <div class="ba">${b.amount}</div>
+          <div class="bt">${ts}</div>
+        </div>`;
+      }).join('')
+    :'<span class="dim">Nessuna offerta</span>';
+}
+
+function showAdminRevealed(winner,player){
+  toggleEl('a-winner-bar',true);
+  if(winner){
+    $('a-wb-title').textContent=`🏆 ${winner.coachName}`;
+    $('a-wb-desc').textContent=`${player?.name} a ${winner.amount} cr`;
   } else {
-    document.getElementById('wb-title').textContent = '😶 Nessuna offerta';
-    document.getElementById('wb-desc').textContent  = `${player?.name} non assegnato`;
+    $('a-wb-title').textContent='😶 Nessuna offerta';
+    $('a-wb-desc').textContent=`${player?.name} non assegnato`;
   }
 }
 
-function renderCoach(s) {
-  const me = s.coaches?.[myCoachId];
-  if (me) document.getElementById('my-budget').textContent = me.budget;
+function renderCoach(s){
+  const me=s.coaches?.[myCoachId];
+  if(me) $('co-mybudget').textContent=me.budget;
 
-  // Aggiorna my-bid-info se asta aperta
-  if (s.auctionActive) {
-    const myBid = (s.bids||[]).find(b => b.coachId === myCoachId);
-    const info  = document.getElementById('my-bid-info');
-    if (myBid) {
-      info.style.display = '';
-      info.innerHTML = `Offerta inviata: <strong>${myBid.amount} cr</strong>`;
-    } else {
-      info.style.display = 'none';
-    }
-  }
-}
-
-function showCoachAuction(player) {
-  document.getElementById('co-wait').style.display   = 'none';
-  document.getElementById('co-auction').style.display = '';
-  document.getElementById('co-closed').style.display  = 'none';
-  document.getElementById('co-role').textContent   = player.role;
-  document.getElementById('co-name-p').textContent = player.name;
-  document.getElementById('co-team').textContent   = player.team;
-  document.getElementById('co-price').textContent  = `Base: ${player.base} cr`;
-  document.getElementById('send-btn').disabled     = false;
-  document.getElementById('my-bid-info').style.display = 'none';
-  currentBid = ''; updateBidDisp();
-}
-
-function showCoachClosed(winner, player) {
-  document.getElementById('co-auction').style.display = 'none';
-  document.getElementById('co-closed').style.display  = '';
-  const isMe = winner && winner.coachId === myCoachId;
-  const banner = document.getElementById('w-banner');
-  banner.className = `w-banner${isMe ? '' : ' lost'}`;
-  if (winner) {
-    document.getElementById('w-title').textContent = isMe ? '🏆 HAI VINTO!' : '❌ Non aggiudicato';
-    document.getElementById('w-desc').textContent  = isMe
-      ? `${player?.name} è tuo per ${winner.amount} cr!`
-      : `${winner.coachName} ha preso ${player?.name} a ${winner.amount} cr`;
+  // Timer coach
+  const timerEl=$('co-timer-wrap');
+  const timerDisp=$('co-timer-disp');
+  if(s.timer&&s.timer.enabled&&s.auctionActive){
+    timerEl.classList.remove('hidden');
+    timerDisp.textContent=fmt(s.timer.remaining||0);
+    timerDisp.className='co-timer-num'+(s.timer.remaining<=10?' urgent':'');
   } else {
-    document.getElementById('w-title').textContent = '—';
-    document.getElementById('w-desc').textContent  = 'Nessuna offerta ricevuta';
+    timerEl.classList.add('hidden');
+  }
+
+  // My bid info
+  if(s.auctionActive){
+    const myBid=(s.bids||[]).find(b=>b.coachId===myCoachId);
+    const info=$('co-mybid-info');
+    if(myBid){ info.classList.remove('hidden'); info.innerHTML=`Offerta inviata: <strong>${myBid.amount} cr</strong>`; }
+    else info.classList.add('hidden');
   }
 }
 
-// ── Numpad ────────────────────────────────────────────────────────────────────
-function nIn(n) {
-  if (currentBid.length >= 4) return;
-  currentBid += n;
-  currentBid = currentBid.replace(/^0+/,'') || '0';
-  updateBidDisp();
+function showCoachAuction(player){
+  toggleEl('co-wait',false); toggleEl('co-auction',false);
+  toggleEl('co-closed',false); toggleEl('co-revealed',false);
+  // piccola animazione
+  setTimeout(()=>{
+    toggleEl('co-auction',true);
+    $('co-role').textContent=player.role;
+    $('co-pname').textContent=player.name;
+    $('co-team').textContent=player.team;
+    $('co-price').textContent=`Base: ${player.base} cr`;
+    $('co-send').disabled=false;
+    $('co-mybid-info').classList.add('hidden');
+    curBid=''; updBidDisp();
+  },50);
 }
-function nDel() { currentBid = currentBid.slice(0,-1); updateBidDisp(); }
-function updateBidDisp() { document.getElementById('bid-disp').textContent = currentBid || '0'; }
 
-function submitBid() {
-  const amount = parseInt(currentBid);
-  if (!amount || amount < 1) { toast('Inserisci un importo valido', 'err'); return; }
-  send({ type: 'bid', coachId: myCoachId, coachName: myCoachName, amount });
+function showCoachClosed(){
+  toggleEl('co-auction',false);
+  toggleEl('co-closed',true);
+  // mostra la mia offerta nella sezione chiusa
+  const info=$('co-mybid-closed');
+  // la troveremo nel prossimo renderCoach
+}
+
+function showCoachResult(winner,player,auto){
+  toggleEl('co-closed',false); toggleEl('co-auction',false);
+  toggleEl('co-revealed',true);
+  const isMe=winner&&winner.coachId===myCoachId;
+  const banner=$('co-result-banner');
+  banner.className='w-banner'+(isMe?'':' lost');
+  if(winner){
+    $('co-res-title').textContent=isMe?'🏆 HAI VINTO!':'❌ Non aggiudicato';
+    $('co-res-desc').textContent=isMe
+      ?`${player?.name} è tuo per ${winner.amount} cr!`
+      :`${winner.coachName} ha preso ${player?.name} a ${winner.amount} cr`;
+  } else {
+    $('co-res-title').textContent='—';
+    $('co-res-desc').textContent='Nessuna offerta ricevuta.';
+  }
+  // Dopo assegnazione admin, ritorniamo in attesa (gestito da renderState)
+}
+
+// ═══════════════ NUMPAD ═══════════════
+function nI(n){ if(curBid.length>=4)return; curBid+=n; curBid=curBid.replace(/^0+/,'')||'0'; updBidDisp(); }
+function nD(){ curBid=curBid.slice(0,-1); updBidDisp(); }
+function updBidDisp(){ $('co-bid-disp').textContent=curBid||'0'; }
+function submitBid(){
+  const amount=parseInt(curBid);
+  if(!amount||amount<1){ toast('Inserisci un importo valido','err'); return; }
+  snd({ type:'bid', coachId:myCoachId, coachName:myCoachName, amount });
+}
+
+// ═══════════════ EXPORT CSV ═══════════════
+// Formato compatibile Leghe Fantacalcio.it (FantaAsta Buzz)
+// Per ogni squadra (allenatore): Id;Nome;R;Squadra;Qt.A;Qt.I
+// Il file contiene tutte le rose; l'admin le importa una per volta su Leghe Fantacalcio
+function exportCSV(){
+  const assigned=window._lastState?.assigned||[];
+  if(!assigned.length){ toast('Nessuna assegnazione da esportare','err'); return; }
+
+  // Raggruppa per allenatore
+  const byCoach={};
+  assigned.forEach(a=>{
+    if(!byCoach[a.coachId]) byCoach[a.coachId]={ name:a.coachName, players:[] };
+    byCoach[a.coachId].players.push(a);
+  });
+
+  let csv='';
+  Object.values(byCoach).forEach(coach=>{
+    // Intestazione squadra
+    csv+=`\n### ${coach.name}\n`;
+    csv+='Id;Nome;R;Squadra;Qt.A;Qt.I\n';
+    coach.players.forEach(a=>{
+      const id=a.player.id||'';
+      const r=a.player.role||'';
+      const team=a.player.team||'';
+      const qt=a.amount||a.player.base||1;
+      csv+=`${id};${a.player.name};${r};${team};${qt};${qt}\n`;
+    });
+  });
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='rose_asta_fantacalcio.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('📥 File CSV scaricato','ok');
+}
+
+// Intercetta lo state per averlo disponibile all'export
+const _origRenderState=renderState;
+function renderState(s){ window._lastState=s; _origRenderState(s); }
+
+// Coach: torna in attesa quando arriva nuovo giocatore (già gestito da new_player)
+// Ma se il coach era in co-revealed e arriva un nuovo state senza currentPlayer → torna in attesa
+const _origRenderCoach=renderCoach;
+function renderCoach(s){
+  _origRenderCoach(s);
+  if(!s.currentPlayer && !s.auctionActive){
+    toggleEl('co-wait',true); toggleEl('co-auction',false);
+    toggleEl('co-closed',false); toggleEl('co-revealed',false);
+  }
 }
 </script>
 </body>
