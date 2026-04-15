@@ -664,7 +664,6 @@ function filterSearch(query) {
   const q = query.trim().toLowerCase();
   const res = $('search-results');
 
-  // Se campo vuoto: nascondi i risultati (non vogliamo vedere la lista in anticipo)
   if (!q) { res.classList.add('hidden'); res.innerHTML = ''; return; }
 
   const queue = lastState?.queue || [];
@@ -678,12 +677,16 @@ function filterSearch(query) {
     p.name.toLowerCase().includes(q) ||
     p.role.toLowerCase().includes(q) ||
     p.team.toLowerCase().includes(q)
-  ).slice(0, 20); // max 20 risultati
+  ).slice(0, 20);
+
+  // Salva i risultati filtrati in una variabile globale per accedervi per indice
+  // (evita problemi con apostrofi e caratteri speciali nell'onclick inline)
+  window._searchResults = filtered;
 
   res.classList.remove('hidden');
   res.innerHTML = filtered.length
-    ? filtered.map(p =>
-        `<div class="s-result" onclick="selectPlayer(${JSON.stringify(p)})">
+    ? filtered.map((p, i) =>
+        `<div class="s-result" onclick="selectPlayer(${i})">
           <div class="sr-left">
             <span class="sr-role">${p.role}</span>
             <div>
@@ -697,19 +700,20 @@ function filterSearch(query) {
     : '<span class="s-empty">Nessun risultato</span>';
 }
 
-function selectPlayer(p) {
+function selectPlayer(idx) {
+  const p = (window._searchResults || [])[idx];
+  if (!p) return;
   selectedPlayer = p;
-  // Mostra il box giocatore selezionato
   $('spb-role').textContent = p.role;
   $('spb-name').textContent = `${p.name} · ${p.team}`;
   $('selected-box').classList.remove('hidden');
-  // Aggiorna pulsante "Prossimo manuale"
-  $('btn-next-manual').textContent = `📋 ${p.name}`;
-  show('btn-next-manual', true);
-  // Pulisci campo e nascondi risultati
+  $('btn-next-manual').innerHTML = `📋 ${p.name}`;
+  // Mostra il tasto solo se non c'è asta in corso
+  show('btn-next-manual', !lastState?.currentPlayer);
   $('search-inp').value = '';
   $('search-results').classList.add('hidden');
   $('search-results').innerHTML = '';
+  window._searchResults = [];
 }
 
 function clearSelected() {
@@ -818,9 +822,7 @@ function renderAdmin(s) {
     timerDisp.textContent = fmt(s.timer.remaining || s.timer.duration || 0);
     timerDisp.className = 't-display' + (s.timer.remaining <= 10 && s.timer.running ? ' urgent' : '');
   }
-  // Sincrona checkbox/numero con stato server
-  $('t-on').checked = !!s.timer?.enabled;
-  $('t-sec').value  = s.timer?.duration || 60;
+  $('t-sec').value = s.timer?.duration || 60;
 
   // Sincrona tasto timer
   syncTimerBtn(s);
