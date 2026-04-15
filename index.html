@@ -179,6 +179,33 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
   margin-top:.6rem;padding:.65rem .8rem;background:var(--bg2);
   border:1px solid var(--border);border-radius:var(--radius)}
 
+/* ricerca giocatori */
+.search-block{background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:.8rem 1rem;margin-bottom:.7rem}
+.search-block .s-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.search-block .s-label{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;
+  color:var(--gray);text-transform:uppercase;letter-spacing:1.5px}
+.search-wrap{position:relative}
+.search-wrap input{padding-left:2rem;background:var(--bg3)}
+.search-wrap .s-ico{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);
+  font-size:.9rem;pointer-events:none;opacity:.5}
+.search-results{max-height:220px;overflow-y:auto;margin-top:.4rem;
+  display:flex;flex-direction:column;gap:.25rem}
+.s-result{display:flex;align-items:center;justify-content:space-between;
+  padding:.38rem .6rem;border-radius:8px;background:var(--bg3);
+  cursor:pointer;transition:background .15s;border:1px solid transparent}
+.s-result:hover{background:var(--bg4);border-color:var(--gl)}
+.s-result .sr-left{display:flex;align-items:center;gap:.5rem}
+.s-result .sr-role{font-size:.68rem;color:var(--gray);background:var(--bg4);
+  border-radius:4px;padding:1px 5px;font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;min-width:18px;text-align:center}
+.s-result .sr-name{font-size:.88rem;font-weight:600}
+.s-result .sr-team{font-size:.75rem;color:var(--gray)}
+.s-result .sr-pick{font-size:.75rem;color:var(--gl);font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;letter-spacing:.5px;opacity:0;transition:opacity .15s}
+.s-result:hover .sr-pick{opacity:1}
+.s-empty{color:var(--dim);font-size:.82rem;padding:.3rem 0;text-align:center}
+
 /* ═══ COACH ════════════════════════════════════════════ */
 #coach{display:none;min-height:100vh;padding:.75rem;max-width:480px;margin:0 auto}
 
@@ -332,11 +359,26 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 
       <!-- Controlli -->
       <div class="ctrl">
-        <button class="btn btn-g"    onclick="snd('next_player')">▶ Prossimo</button>
+        <button class="btn btn-g"    onclick="snd('next_player')">▶ Prossimo random</button>
         <button class="btn btn-red  hidden" id="btn-close"  onclick="snd('close_bidding')">🔒 Chiudi</button>
         <button class="btn btn-blue hidden" id="btn-reveal" onclick="snd('reveal_bids')">👁 Scopri offerte</button>
         <button class="btn btn-gold hidden" id="btn-assign" onclick="snd('confirm_assign')">✅ Assegna</button>
         <button class="btn btn-out  hidden" id="btn-skip"   onclick="snd('skip_player')">⏭ Salta</button>
+      </div>
+
+      <!-- Ricerca giocatore manuale -->
+      <div class="search-block" id="search-block">
+        <div class="s-top">
+          <span class="s-label">🔍 Cerca giocatore dalla lista</span>
+          <span class="dim" id="search-count"></span>
+        </div>
+        <div class="search-wrap">
+          <span class="s-ico">🔍</span>
+          <input type="text" id="search-inp" placeholder="Nome, ruolo o squadra..." oninput="filterSearch(this.value)" autocomplete="off">
+        </div>
+        <div class="search-results" id="search-results">
+          <span class="s-empty">Carica i giocatori per cercare</span>
+        </div>
       </div>
 
       <!-- Winner bar (dopo reveal) -->
@@ -564,9 +606,50 @@ function setBadge(ok) {
   el.className = 'badge '+(ok?'badge-ok':'badge-err');
 }
 
-// Timer (admin configura inline)
+// Timer (admin configura inline) — parte subito se c'è asta aperta
 function applyTimer() {
   sndObj({ type:'set_timer', enabled:$('t-on').checked, duration:parseInt($('t-sec').value)||60 });
+}
+
+// ── Ricerca giocatori ──────────────────────────────────────────────────────────
+function filterSearch(query) {
+  const q = query.trim().toLowerCase();
+  const queue = lastState?.queue || [];
+  const res = $('search-results');
+
+  if (!queue.length) { res.innerHTML = '<span class="s-empty">Nessun giocatore in coda</span>'; return; }
+
+  const filtered = q
+    ? queue.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.role.toLowerCase().includes(q) ||
+        p.team.toLowerCase().includes(q))
+    : queue.slice(0, 30); // mostra i primi 30 se campo vuoto
+
+  if (!filtered.length) {
+    res.innerHTML = '<span class="s-empty">Nessun risultato</span>';
+    return;
+  }
+
+  res.innerHTML = filtered.map(p =>
+    `<div class="s-result" onclick="pickPlayer(${JSON.stringify(p.name)})">
+      <div class="sr-left">
+        <span class="sr-role">${p.role}</span>
+        <div>
+          <div class="sr-name">${p.name}</div>
+          <div class="sr-team">${p.team} &middot; base ${p.base} cr</div>
+        </div>
+      </div>
+      <span class="sr-pick">SCEGLI ▶</span>
+    </div>`
+  ).join('');
+}
+
+function pickPlayer(name) {
+  if (!confirm(`Mettere in asta ${name}?`)) return;
+  sndObj({ type:'pick_player', playerName: name });
+  $('search-inp').value = '';
+  filterSearch('');
 }
 
 // ── Message Handler ────────────────────────────────────────────────────────────
@@ -665,7 +748,7 @@ function renderAdmin(s) {
   $('t-on').checked = !!s.timer?.enabled;
   $('t-sec').value  = s.timer?.duration || 60;
 
-  // Pulsanti
+  // Pulsanti — btn-close visibile anche con timer attivo (chiusura anticipata)
   show('btn-close',  hasPlayer && s.auctionActive);
   show('btn-reveal', hasPlayer && !s.auctionActive && !s.bidsRevealed && (s.bids||[]).length > 0);
   show('btn-assign', hasPlayer && s.bidsRevealed && (s.bids||[]).length > 0);
@@ -673,6 +756,12 @@ function renderAdmin(s) {
 
   // Nascondi winner bar durante asta attiva
   if (s.auctionActive) show('a-winner', false);
+
+  // Aggiorna il pannello di ricerca
+  const queue = s.queue || [];
+  $('search-count').textContent = queue.length ? `${queue.length} disponibili` : '';
+  const searchVal = $('search-inp')?.value || '';
+  if (document.activeElement !== $('search-inp')) filterSearch(searchVal);
 
   // Sezione offerte
   const bids = s.bids || [];

@@ -209,10 +209,27 @@ wss.on('connection', ws => {
       case 'set_timer':
         state.timer.enabled = !!msg.enabled;
         state.timer.duration = Math.max(5, parseInt(msg.duration) || 60);
-        state.timer.remaining = 0;
-        state.timer.running = false;
+        if (state.timer.enabled && state.auctionActive) {
+          startTimer(); // parte subito se c'è un'asta aperta
+        } else if (!state.timer.enabled) {
+          stopTimer();
+          state.timer.remaining = 0;
+        }
         broadcastState();
         break;
+
+      // ── Admin: sceglie giocatore dalla lista (ricerca manuale) ─────────────
+      case 'pick_player': {
+        const idx = state.queue.findIndex(p => p.name === msg.playerName);
+        if (idx < 0) { sendTo(ws, { type: 'pick_error', error: 'Giocatore non trovato nella coda' }); return; }
+        stopTimer();
+        state.currentPlayer = state.queue.splice(idx, 1)[0];
+        state.bids = []; state.bidsRevealed = false; state.auctionActive = true;
+        broadcastState();
+        broadcast({ type: 'new_player', player: state.currentPlayer });
+        if (state.timer.enabled) startTimer();
+        break;
+      }
 
       // ── Admin: prossimo giocatore ───────────────────────────────────────────
       case 'next_player':
@@ -319,3 +336,37 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n⚽  Asta Fantacalcio v4`);
   console.log(`   http://localhost:${PORT}   |   http://${ip}:${PORT}\n`);
 });
+
+// ─── Backup automatico ogni 15 minuti ─────────────────────────────────────────
+const os = require('os');
+const BACKUP_DIR = path.join(os.homedir(), 'Desktop', 'Asta Fantacalcio');
+
+function saveBackup() {
+  // Salta se non ci sono ancora dati
+  if (!state.players.length && !state.assigned.length) return;
+  try {
+    if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
+
+    // Giocatori assegnati
+    let csvA = 'Nome;Ruolo;Squadra;Allenatore;Crediti\n';
+    (state.assigned || []).forEach(a => {
+      csvA += `${a.player.name};${a.player.role};${a.player.team};${a.coachName};${a.amount}\n`;
+    });
+    fs.writeFileSync(path.join(BACKUP_DIR, `assegnati_${ts}.csv`), '\uFEFF' + csvA, 'utf8');
+
+    // Giocatori rimanenti
+    let csvQ = 'Nome;Ruolo;Squadra;CreditiBase\n';
+    if (state.currentPlayer) csvQ += `${state.currentPlayer.name};${state.currentPlayer.role};${state.currentPlayer.team};${state.currentPlayer.base} [IN ASTA]\n`;
+    (state.queue || []).forEach(p => { csvQ += `${p.name};${p.role};${p.team};${p.base}\n`; });
+    fs.writeFileSync(path.join(BACKUP_DIR, `rimanenti_${ts}.csv`), '\uFEFF' + csvQ, 'utf8');
+
+    console.log(`💾 Backup ${ts} — ${state.assigned.length} assegnati, ${state.queue.length} rimasti`);
+  } catch (e) {
+    console.error('⚠️  Backup fallito:', e.message);
+  }
+}
+
+setInterval(saveBackup, 15 * 60 * 1000);
