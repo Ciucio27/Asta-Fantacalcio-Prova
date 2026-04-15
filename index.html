@@ -114,9 +114,14 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .timer-block .t-label{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;
   color:var(--gray);text-transform:uppercase;letter-spacing:1.5px}
 .timer-cfg{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
-.timer-cfg label{font-size:.85rem;color:var(--white);margin:0}
-.timer-cfg input[type=checkbox]{width:auto;accent-color:var(--gl);cursor:pointer}
 .timer-cfg input[type=number]{width:72px;padding:.4rem .6rem}
+.btn-timer-toggle{padding:.38rem .9rem;font-size:.82rem;border-radius:6px;border:none;
+  cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;transition:all .2s}
+.btn-timer-toggle.off{background:var(--bg4);color:var(--gray);border:1px solid var(--border)}
+.btn-timer-toggle.off:hover{border-color:var(--gl);color:var(--gl)}
+.btn-timer-toggle.on{background:#1a3a60;color:#88aaff;border:1px solid #3060a0}
+.btn-timer-toggle.on:hover{background:#1a2e50}
 .t-display{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;color:var(--gold);
   letter-spacing:4px;line-height:1;text-align:center;transition:color .3s}
 .t-display.urgent{color:var(--red);animation:blink .5s ease infinite alternate}
@@ -205,6 +210,18 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
   font-weight:700;letter-spacing:.5px;opacity:0;transition:opacity .15s}
 .s-result:hover .sr-pick{opacity:1}
 .s-empty{color:var(--dim);font-size:.82rem;padding:.3rem 0;text-align:center}
+
+/* giocatore selezionato per asta manuale */
+.selected-player-box{background:var(--bg3);border:1px solid var(--gl);border-radius:var(--radius);
+  padding:.55rem .85rem;display:flex;align-items:center;justify-content:space-between;
+  margin-top:.5rem;gap:.5rem}
+.spb-info{display:flex;align-items:center;gap:.5rem;min-width:0}
+.spb-role{font-size:.68rem;color:var(--gray);background:var(--bg4);
+  border-radius:4px;padding:1px 5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;flex-shrink:0}
+.spb-name{font-size:.9rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spb-clear{background:none;border:none;color:var(--dim);cursor:pointer;font-size:1rem;
+  padding:0 .2rem;line-height:1;flex-shrink:0}
+.spb-clear:hover{color:var(--red)}
 
 /* ═══ COACH ════════════════════════════════════════════ */
 #coach{display:none;min-height:100vh;padding:.75rem;max-width:480px;margin:0 auto}
@@ -346,11 +363,10 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
       <!-- Blocco timer (sempre visibile, configurabile inline) -->
       <div class="timer-block">
         <div class="t-top">
-          <span class="t-label">Timer offerte</span>
+          <span class="t-label">⏱ Timer offerte</span>
           <div class="timer-cfg">
-            <input type="checkbox" id="t-on" onchange="applyTimer()">
-            <label for="t-on">Attiva</label>
-            <input type="number" id="t-sec" value="60" min="5" max="300" onchange="applyTimer()" style="width:68px">
+            <button id="btn-timer-toggle" class="btn-timer-toggle off" onclick="toggleTimer()">OFF</button>
+            <input type="number" id="t-sec" value="60" min="5" max="300" onchange="applyTimerDuration()" style="width:68px">
             <span class="dim">sec</span>
           </div>
         </div>
@@ -359,7 +375,8 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 
       <!-- Controlli -->
       <div class="ctrl">
-        <button class="btn btn-g"    onclick="snd('next_player')">▶ Prossimo random</button>
+        <button class="btn btn-g"    onclick="snd('next_player')">🎲 Prossimo random</button>
+        <button class="btn btn-g hidden" id="btn-next-manual" onclick="nextManual()" style="background:#1a5a3c">📋 Prossimo manuale</button>
         <button class="btn btn-red  hidden" id="btn-close"  onclick="snd('close_bidding')">🔒 Chiudi</button>
         <button class="btn btn-blue hidden" id="btn-reveal" onclick="snd('reveal_bids')">👁 Scopri offerte</button>
         <button class="btn btn-gold hidden" id="btn-assign" onclick="snd('confirm_assign')">✅ Assegna</button>
@@ -369,15 +386,22 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
       <!-- Ricerca giocatore manuale -->
       <div class="search-block" id="search-block">
         <div class="s-top">
-          <span class="s-label">🔍 Cerca giocatore dalla lista</span>
+          <span class="s-label">📋 Selezione manuale</span>
           <span class="dim" id="search-count"></span>
         </div>
         <div class="search-wrap">
           <span class="s-ico">🔍</span>
-          <input type="text" id="search-inp" placeholder="Nome, ruolo o squadra..." oninput="filterSearch(this.value)" autocomplete="off">
+          <input type="text" id="search-inp" placeholder="Cerca per nome, ruolo o squadra..." oninput="filterSearch(this.value)" autocomplete="off">
         </div>
-        <div class="search-results" id="search-results">
-          <span class="s-empty">Carica i giocatori per cercare</span>
+        <!-- Risultati: appaiono solo quando si digita -->
+        <div class="search-results hidden" id="search-results"></div>
+        <!-- Box giocatore selezionato -->
+        <div class="selected-player-box hidden" id="selected-box">
+          <div class="spb-info">
+            <span class="spb-role" id="spb-role"></span>
+            <span class="spb-name" id="spb-name"></span>
+          </div>
+          <button class="spb-clear" onclick="clearSelected()" title="Deseleziona">✕</button>
         </div>
       </div>
 
@@ -606,50 +630,100 @@ function setBadge(ok) {
   el.className = 'badge '+(ok?'badge-ok':'badge-err');
 }
 
-// Timer (admin configura inline) — parte subito se c'è asta aperta
-function applyTimer() {
-  sndObj({ type:'set_timer', enabled:$('t-on').checked, duration:parseInt($('t-sec').value)||60 });
+// ── Timer — tasto toggle ────────────────────────────────────────────────────────
+let timerEnabled = false;
+
+function toggleTimer() {
+  timerEnabled = !timerEnabled;
+  const btn = $('btn-timer-toggle');
+  btn.textContent = timerEnabled ? 'ON' : 'OFF';
+  btn.className = 'btn-timer-toggle ' + (timerEnabled ? 'on' : 'off');
+  sndObj({ type:'set_timer', enabled: timerEnabled, duration: parseInt($('t-sec').value)||60 });
 }
 
-// ── Ricerca giocatori ──────────────────────────────────────────────────────────
+function applyTimerDuration() {
+  // Aggiorna solo la durata senza cambiare lo stato on/off
+  sndObj({ type:'set_timer', enabled: timerEnabled, duration: parseInt($('t-sec').value)||60 });
+}
+
+// Sincronizza il bottone quando arriva lo state dal server (es. dopo riconnessione)
+function syncTimerBtn(s) {
+  if (!s.timer) return;
+  timerEnabled = !!s.timer.enabled;
+  const btn = $('btn-timer-toggle');
+  if (!btn) return;
+  btn.textContent = timerEnabled ? 'ON' : 'OFF';
+  btn.className = 'btn-timer-toggle ' + (timerEnabled ? 'on' : 'off');
+  $('t-sec').value = s.timer.duration || 60;
+}
+
+// ── Ricerca e selezione manuale ────────────────────────────────────────────────
+let selectedPlayer = null; // { name, role, team, base }
+
 function filterSearch(query) {
   const q = query.trim().toLowerCase();
-  const queue = lastState?.queue || [];
   const res = $('search-results');
 
-  if (!queue.length) { res.innerHTML = '<span class="s-empty">Nessun giocatore in coda</span>'; return; }
+  // Se campo vuoto: nascondi i risultati (non vogliamo vedere la lista in anticipo)
+  if (!q) { res.classList.add('hidden'); res.innerHTML = ''; return; }
 
-  const filtered = q
-    ? queue.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.role.toLowerCase().includes(q) ||
-        p.team.toLowerCase().includes(q))
-    : queue.slice(0, 30); // mostra i primi 30 se campo vuoto
-
-  if (!filtered.length) {
-    res.innerHTML = '<span class="s-empty">Nessun risultato</span>';
+  const queue = lastState?.queue || [];
+  if (!queue.length) {
+    res.classList.remove('hidden');
+    res.innerHTML = '<span class="s-empty">Nessun giocatore in coda</span>';
     return;
   }
 
-  res.innerHTML = filtered.map(p =>
-    `<div class="s-result" onclick="pickPlayer(${JSON.stringify(p.name)})">
-      <div class="sr-left">
-        <span class="sr-role">${p.role}</span>
-        <div>
-          <div class="sr-name">${p.name}</div>
-          <div class="sr-team">${p.team} &middot; base ${p.base} cr</div>
-        </div>
-      </div>
-      <span class="sr-pick">SCEGLI ▶</span>
-    </div>`
-  ).join('');
+  const filtered = queue.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.role.toLowerCase().includes(q) ||
+    p.team.toLowerCase().includes(q)
+  ).slice(0, 20); // max 20 risultati
+
+  res.classList.remove('hidden');
+  res.innerHTML = filtered.length
+    ? filtered.map(p =>
+        `<div class="s-result" onclick="selectPlayer(${JSON.stringify(p)})">
+          <div class="sr-left">
+            <span class="sr-role">${p.role}</span>
+            <div>
+              <div class="sr-name">${p.name}</div>
+              <div class="sr-team">${p.team} · base ${p.base} cr</div>
+            </div>
+          </div>
+          <span class="sr-pick">SCEGLI ▶</span>
+        </div>`
+      ).join('')
+    : '<span class="s-empty">Nessun risultato</span>';
 }
 
-function pickPlayer(name) {
-  if (!confirm(`Mettere in asta ${name}?`)) return;
-  sndObj({ type:'pick_player', playerName: name });
+function selectPlayer(p) {
+  selectedPlayer = p;
+  // Mostra il box giocatore selezionato
+  $('spb-role').textContent = p.role;
+  $('spb-name').textContent = `${p.name} · ${p.team}`;
+  $('selected-box').classList.remove('hidden');
+  // Aggiorna pulsante "Prossimo manuale"
+  $('btn-next-manual').textContent = `📋 ${p.name}`;
+  show('btn-next-manual', true);
+  // Pulisci campo e nascondi risultati
   $('search-inp').value = '';
-  filterSearch('');
+  $('search-results').classList.add('hidden');
+  $('search-results').innerHTML = '';
+}
+
+function clearSelected() {
+  selectedPlayer = null;
+  $('selected-box').classList.add('hidden');
+  show('btn-next-manual', false);
+}
+
+function nextManual() {
+  if (!selectedPlayer) { toast('Nessun giocatore selezionato','err'); return; }
+  // Controlla che non ci sia già un giocatore in asta
+  if (lastState?.currentPlayer) { toast('Chiudi prima l\'asta corrente','err'); return; }
+  sndObj({ type:'pick_player', playerName: selectedPlayer.name });
+  clearSelected();
 }
 
 // ── Message Handler ────────────────────────────────────────────────────────────
@@ -748,20 +822,24 @@ function renderAdmin(s) {
   $('t-on').checked = !!s.timer?.enabled;
   $('t-sec').value  = s.timer?.duration || 60;
 
+  // Sincrona tasto timer
+  syncTimerBtn(s);
+
   // Pulsanti — btn-close visibile anche con timer attivo (chiusura anticipata)
   show('btn-close',  hasPlayer && s.auctionActive);
   show('btn-reveal', hasPlayer && !s.auctionActive && !s.bidsRevealed && (s.bids||[]).length > 0);
   show('btn-assign', hasPlayer && s.bidsRevealed && (s.bids||[]).length > 0);
   show('btn-skip',   hasPlayer && !s.auctionActive);
+  // Prossimo manuale: visibile solo se c'è un giocatore selezionato e nessuna asta attiva
+  show('btn-next-manual', !!selectedPlayer && !hasPlayer);
 
   // Nascondi winner bar durante asta attiva
   if (s.auctionActive) show('a-winner', false);
 
-  // Aggiorna il pannello di ricerca
+  // Aggiorna solo il contatore rimasti — non aggiornare la lista di ricerca
+  // per non rivelare i prossimi giocatori
   const queue = s.queue || [];
   $('search-count').textContent = queue.length ? `${queue.length} disponibili` : '';
-  const searchVal = $('search-inp')?.value || '';
-  if (document.activeElement !== $('search-inp')) filterSearch(searchVal);
 
   // Sezione offerte
   const bids = s.bids || [];
