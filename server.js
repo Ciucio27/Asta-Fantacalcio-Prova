@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
+const ROSTER_SIZE = 28; // Numero massimo di giocatori per rosa
 
 // ─── Sessioni persistenti PIN → profilo (sopravvivono ai restart se vuoi salvarle su file)
 // pin (string) → { coachId, name, budgetInitial, budgetCurrent }
@@ -294,8 +295,6 @@ wss.on('connection', ws => {
           sendTo(ws, { type: 'bid_error', error: 'Offerte chiuse' }); return;
         }
 
-        // Risolve l'identità: prima usa ws.coachId (già registrato),
-        // poi prova msg.coachId, infine risale dal PIN della connessione
         const resolvedCoachId = ws.coachId || msg.coachId || null;
         const coach = resolvedCoachId ? state.coaches[resolvedCoachId] : null;
 
@@ -305,8 +304,33 @@ wss.on('connection', ws => {
         }
 
         const amount = parseInt(msg.amount);
-        if (!amount || amount < 1) { sendTo(ws, { type: 'bid_error', error: 'Offerta non valida' }); return; }
-        if (amount > coach.budget) { sendTo(ws, { type: 'bid_error', error: 'Budget insufficiente!' }); return; }
+
+        // Validazione 1: offerta >= 1
+        if (!amount || amount < 1) {
+          sendTo(ws, { type: 'bid_error', error: 'Offerta minima: 1 credito' }); return;
+        }
+
+        // Calcola giocatori già acquistati da questo allenatore
+        const bought = state.assigned.filter(a => a.coachId === resolvedCoachId).length;
+        const remaining = ROSTER_SIZE - bought; // posti liberi in rosa
+
+        // Validazione 2: rosa già completa
+        if (remaining <= 0) {
+          sendTo(ws, { type: 'bid_error', error: `Rosa completa (${ROSTER_SIZE}/${ROSTER_SIZE} giocatori)` }); return;
+        }
+
+        // Validazione 3: budget sufficiente
+        if (amount > coach.budget) {
+          sendTo(ws, { type: 'bid_error', error: 'Budget insufficiente!' }); return;
+        }
+
+        // Validazione 4: offerta max calcolata
+        // Deve rimanere almeno 1 credito per ognuno dei posti rimanenti dopo questo acquisto
+        const slotsAfter = remaining - 1; // posti rimasti SE prende questo giocatore
+        const maxBid = coach.budget - slotsAfter; // budget - riserva minima per gli altri slot
+        if (amount > maxBid) {
+          sendTo(ws, { type: 'bid_error', error: `Offerta troppo alta! Max consentito: ${maxBid} cr (devi tenere almeno 1 cr per i ${slotsAfter} slot rimasti)` }); return;
+        }
 
         const ex = state.bids.find(b => b.coachId === resolvedCoachId);
         if (ex) { ex.amount = amount; ex.timestamp = Date.now(); }

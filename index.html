@@ -231,6 +231,23 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .ch-budget{font-size:.9rem;color:var(--gl)}
 .ch-budget strong{font-size:1.2rem;color:var(--white)}
 
+/* pannello info rosa */
+.rosa-info{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:.8rem}
+.ri-tile{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:.55rem .5rem;text-align:center}
+.ri-val{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--white);line-height:1}
+.ri-val.warn{color:var(--gold)}
+.ri-val.danger{color:var(--red)}
+.ri-lbl{font-size:.65rem;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:.1rem}
+.maxbid-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:.5rem .85rem;margin-bottom:.7rem;display:flex;align-items:center;
+  justify-content:space-between;gap:.5rem}
+.maxbid-bar .mb-label{font-size:.78rem;color:var(--gray)}
+.maxbid-bar .mb-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold);white-space:nowrap}
+.maxbid-bar.full{border-color:var(--red);background:#1a0a0a}
+.maxbid-bar.full .mb-label{color:#e07070}
+.maxbid-bar.full .mb-val{color:var(--red)}
+
 .mp-card{background:var(--bg2);border:2px solid var(--gl);border-radius:var(--radius-lg);
   padding:1.1rem;text-align:center;margin-bottom:.9rem}
 .mp-role{font-size:.7rem;letter-spacing:3px;color:var(--gl);text-transform:uppercase}
@@ -443,8 +460,24 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 <!-- ════════════════════ COACH ════════════════════ -->
 <div id="coach">
   <div class="ch-head">
-    <div class="ch-name"   id="co-name">—</div>
+    <div class="ch-name" id="co-name">—</div>
     <div class="ch-budget">Budget: <strong id="co-budget">—</strong> cr</div>
+  </div>
+
+  <!-- Pannello info rosa (sempre visibile) -->
+  <div class="rosa-info" id="co-rosa-info">
+    <div class="ri-tile">
+      <div class="ri-val" id="ri-bought">0</div>
+      <div class="ri-lbl">Acquistati</div>
+    </div>
+    <div class="ri-tile">
+      <div class="ri-val" id="ri-slots">28</div>
+      <div class="ri-lbl">Posti liberi</div>
+    </div>
+    <div class="ri-tile">
+      <div class="ri-val" id="ri-budget">—</div>
+      <div class="ri-lbl">Crediti</div>
+    </div>
   </div>
 
   <!-- In attesa -->
@@ -468,6 +501,11 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
     </div>
     <!-- Tastierino -->
     <div class="bid-box">
+      <!-- Barra offerta massima -->
+      <div class="maxbid-bar" id="co-maxbid-bar">
+        <span class="mb-label" id="co-maxbid-label">Offerta massima consentita</span>
+        <span class="mb-val"   id="co-maxbid-val">—</span>
+      </div>
       <div class="bid-hint">La tua offerta</div>
       <div class="bid-num" id="co-bid-num">0</div>
       <div class="numpad">
@@ -517,6 +555,7 @@ let ws, myRole, myCoachId, myCoachName;
 let curBid = '';
 let parsedPlayers = [];
 let lastState = null;
+const ROSTER_SIZE = 28; // deve corrispondere alla costante nel server
 
 // ── Utility ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -924,12 +963,56 @@ function showAdminWinner(winner, player) {
   }
 }
 
+// ── Calcola info rosa per l'allenatore corrente ────────────────────────────────
+function calcRosaInfo(s) {
+  if (!myCoachId || !s) return null;
+  const me = s.coaches?.[myCoachId];
+  if (!me) return null;
+  const bought  = (s.assigned || []).filter(a => a.coachId === myCoachId).length;
+  const slots   = ROSTER_SIZE - bought;          // posti liberi
+  const budget  = me.budget;
+  // Offerta max: budget meno 1 cr riservato per ogni slot rimanente DOPO questo acquisto
+  const maxBid  = slots > 0 ? budget - (slots - 1) : 0;
+  return { bought, slots, budget, maxBid };
+}
+
 // ── Render Coach ───────────────────────────────────────────────────────────────
 function renderCoach(s) {
-  // Budget — aggiorna se il nostro profilo è già noto
+  // Budget e pannello rosa — sempre aggiornati
   if (myCoachId) {
     const me = s.coaches?.[myCoachId];
     if (me) $('co-budget').textContent = me.budget;
+
+    const info = calcRosaInfo(s);
+    if (info) {
+      $('co-budget').textContent = info.budget;
+
+      // Tiles
+      const boughtEl = $('ri-bought');
+      const slotsEl  = $('ri-slots');
+      const budgetEl = $('ri-budget');
+      boughtEl.textContent = info.bought;
+      slotsEl.textContent  = info.slots;
+      budgetEl.textContent = info.budget;
+
+      // Colori di allerta
+      slotsEl.className  = 'ri-val' + (info.slots <= 3 ? ' warn' : '') + (info.slots === 0 ? ' danger' : '');
+      budgetEl.className = 'ri-val' + (info.budget <= 10 ? ' warn' : '') + (info.budget <= 0 ? ' danger' : '');
+
+      // Barra offerta massima (solo durante asta)
+      const bar = $('co-maxbid-bar');
+      if (bar) {
+        if (info.slots <= 0) {
+          bar.className = 'maxbid-bar full';
+          $('co-maxbid-label').textContent = '🚫 Rosa completa — non puoi offrire';
+          $('co-maxbid-val').textContent   = '';
+        } else {
+          bar.className = 'maxbid-bar';
+          $('co-maxbid-label').textContent = `Max offerta (${info.slots} posti, ${info.budget} cr)`;
+          $('co-maxbid-val').textContent   = `${info.maxBid} cr`;
+        }
+      }
+    }
   }
 
   // Timer coach
@@ -949,24 +1032,27 @@ function renderCoach(s) {
     else offerEl.classList.add('hidden');
   }
 
+  // Blocca il tasto invia se rosa completa
+  const sendBtn = $('co-send');
+  if (sendBtn && myCoachId) {
+    const info = calcRosaInfo(s);
+    sendBtn.disabled = !s.auctionActive || (info && info.slots <= 0);
+  }
+
   // Navigazione stati — reagisce allo state indipendentemente da myCoachId
   const isAuctionOpen   = s.auctionActive && !!s.currentPlayer;
   const isAuctionClosed = !s.auctionActive && !!s.currentPlayer && !s.bidsRevealed;
   const isRevealed      = !s.auctionActive && !!s.currentPlayer && s.bidsRevealed;
   const isIdle          = !s.currentPlayer;
 
-  // Aggiorna solo se lo stato è cambiato rispetto a quello visibile
-  // (evita di resettare il tastierino durante la digitazione)
   const coAuction = $('co-auction');
   const coClosed  = $('co-closed');
   const coResult  = $('co-result');
-  const coWait    = $('co-wait');
 
   if (isIdle) {
     show('co-wait', true); show('co-auction', false);
     show('co-closed', false); show('co-result', false);
   } else if (isAuctionOpen && coAuction.classList.contains('hidden')) {
-    // Mostra asta solo se non è già visibile (non interrompe digitazione in corso)
     showCoachAuction(s.currentPlayer);
   } else if (isAuctionClosed && !coClosed.classList.contains('hidden') === false) {
     showCoachClosed();
@@ -1025,8 +1111,23 @@ function updBidDisp() { $('co-bid-num').textContent = curBid||'0'; }
 
 function submitBid() {
   const amount = parseInt(curBid);
-  if (!amount || amount < 1) { toast('Inserisci un importo valido','err'); return; }
-  // Manda coachId se disponibile, altrimenti il server usa ws.coachId dalla sessione
+
+  // Validazione 1: valore > 0
+  if (!amount || amount < 1) { toast('Offerta minima: 1 credito','err'); return; }
+
+  // Validazione 2 e 3: controllo rosa e budget lato client (il server ricontrolla comunque)
+  if (lastState && myCoachId) {
+    const info = calcRosaInfo(lastState);
+    if (info) {
+      if (info.slots <= 0) { toast('Rosa completa — non puoi acquistare altri giocatori','err'); return; }
+      if (amount > info.budget) { toast(`Budget insufficiente! Hai ${info.budget} cr`,'err'); return; }
+      if (amount > info.maxBid) {
+        toast(`Offerta troppo alta! Max: ${info.maxBid} cr (riserva 1 cr per i ${info.slots-1} posti rimasti)`, 'err', 4000);
+        return;
+      }
+    }
+  }
+
   sndObj({ type:'bid', coachId: myCoachId || undefined, coachName: myCoachName || undefined, amount });
 }
 
