@@ -74,7 +74,7 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .dim{color:var(--dim);font-size:.78rem}
 
 /* ═══ ADMIN ════════════════════════════════════════════ */
-#admin{display:none;padding:.8rem;max-width:980px;margin:0 auto}
+#admin{display:none;padding:.8rem;max-width:1400px;margin:0 auto}
 
 /* topbar */
 .topbar{display:flex;align-items:center;justify-content:space-between;
@@ -86,11 +86,36 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .sec-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;
   letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin:.9rem 0 .4rem}
 
-/* grid layout 2 colonne su desktop */
-.admin-grid{display:grid;grid-template-columns:1fr 280px;gap:.9rem}
-@media(max-width:700px){.admin-grid{grid-template-columns:1fr}}
+/* grid layout 3 colonne su desktop */
+.admin-grid{display:grid;grid-template-columns:1fr 220px 220px;gap:.9rem;align-items:start}
+@media(max-width:900px){.admin-grid{grid-template-columns:1fr 220px}}
+@media(max-width:600px){.admin-grid{grid-template-columns:1fr}}
 .admin-main{min-width:0}
 .admin-side{min-width:0}
+
+/* lista giocatori rimanenti */
+.queue-panel{background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:.8rem .9rem}
+.queue-panel .qp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+.queue-panel .qp-title{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;
+  color:var(--gold);text-transform:uppercase;letter-spacing:2px}
+.queue-panel .qp-count{font-size:.72rem;color:var(--dim)}
+.queue-list{max-height:calc(100vh - 180px);overflow-y:auto;
+  display:flex;flex-direction:column;gap:.18rem}
+.qp-filter{width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:6px;color:var(--white);font-size:.8rem;padding:.35rem .6rem;
+  outline:none;margin-bottom:.5rem}
+.qp-filter:focus{border-color:var(--gl)}
+.q-item{display:flex;align-items:center;gap:.4rem;padding:.28rem .3rem;
+  border-radius:6px;font-size:.8rem}
+.q-item:hover{background:var(--bg3)}
+.q-role{font-size:.63rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  color:var(--gray);background:var(--bg4,#1a2a20);border-radius:3px;
+  padding:1px 4px;flex-shrink:0;min-width:16px;text-align:center}
+.q-role.P{color:#60aaff}.q-role.D{color:#60dd80}
+.q-role.C{color:#ffcc40}.q-role.A{color:#ff7060}
+.q-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white)}
+.q-team{font-size:.7rem;color:var(--dim);flex-shrink:0}
 
 /* player card */
 .pcard{background:var(--bg2);border:2px solid var(--gl);border-radius:var(--radius-lg);
@@ -183,6 +208,31 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .export-row{display:flex;align-items:center;gap:.6rem;
   margin-top:.6rem;padding:.65rem .8rem;background:var(--bg2);
   border:1px solid var(--border);border-radius:var(--radius)}
+
+/* griglia assegnazioni per allenatore */
+.assign-grid-wrap{overflow-x:auto;margin:.4rem 0}
+.assign-grid{display:grid;gap:0;min-width:max-content}
+/* numero colonne impostato inline via JS */
+.ag-col-head{background:var(--bg3);border:1px solid var(--border);
+  padding:.45rem .5rem;font-family:'Barlow Condensed',sans-serif;
+  font-size:.78rem;font-weight:700;color:var(--gold);text-transform:uppercase;
+  letter-spacing:.8px;text-align:center;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:.3rem;
+  min-width:130px;position:sticky;top:0;z-index:1}
+.ag-col-head .ag-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.ag-col-head .ag-dot.online{background:var(--gl)}
+.ag-col-head .ag-budget{font-size:.65rem;color:var(--gl);font-weight:400}
+.ag-cell{border:1px solid var(--border);border-top:none;
+  padding:.32rem .45rem;min-width:130px;font-size:.78rem;
+  display:flex;align-items:center;gap:.3rem;min-height:28px}
+.ag-cell:nth-child(even){background:#0f1812}
+.ag-cell .ag-role{font-size:.62rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  color:var(--gray);background:var(--bg3);border-radius:3px;
+  padding:0 3px;flex-shrink:0;min-width:14px;text-align:center}
+.ag-cell .ag-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-cell .ag-cr{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;
+  color:var(--gold);font-weight:700;flex-shrink:0;margin-left:auto;padding-left:.2rem}
+.ag-empty{text-align:center;color:var(--dim);font-size:.75rem;padding:.5rem}
 
 /* ricerca giocatori */
 .search-block{background:var(--bg2);border:1px solid var(--border);
@@ -437,9 +487,13 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
         <div class="bid-list" id="a-bid-list"></div>
       </div>
 
-      <!-- Assegnazioni -->
-      <div class="sec-lbl">Assegnazioni</div>
-      <div class="alist" id="a-alist"><span class="dim">—</span></div>
+      <!-- Assegnazioni (griglia per allenatore) -->
+      <div class="sec-lbl">Assegnazioni per allenatore</div>
+      <div class="assign-grid-wrap">
+        <div class="assign-grid" id="a-assign-grid">
+          <span class="dim">—</span>
+        </div>
+      </div>
       <div class="export-row">
         <button class="btn btn-out" style="padding:.38rem .8rem;font-size:.8rem" onclick="exportCSV()">📥 Esporta CSV</button>
         <span class="dim">Compatibile con Leghe Fantacalcio.it → Admin → Gestione Rose → Importa</span>
@@ -447,13 +501,27 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 
     </div><!-- /admin-main -->
 
-    <!-- ── Sidebar allenatori ── -->
+    <!-- ── Sidebar: allenatori ── -->
     <div class="admin-side">
       <div class="sec-lbl">Allenatori</div>
       <div class="coaches-panel">
         <div id="a-coaches"><span class="no-coaches">Nessun allenatore connesso</span></div>
       </div>
     </div>
+
+    <!-- ── Sidebar: giocatori rimanenti ── -->
+    <div class="admin-side">
+      <div class="sec-lbl">Giocatori disponibili</div>
+      <div class="queue-panel">
+        <div class="qp-head">
+          <span class="qp-title">Da chiamare</span>
+          <span class="qp-count" id="qp-count">—</span>
+        </div>
+        <input type="text" class="qp-filter" id="qp-filter" placeholder="Filtra..." oninput="renderQueueList(this.value)">
+        <div class="queue-list" id="qp-list"><span class="dim">—</span></div>
+      </div>
+    </div>
+
   </div><!-- /admin-grid -->
 </div>
 
@@ -583,34 +651,82 @@ function showSetup(which) {
 // ── CSV Parser ─────────────────────────────────────────────────────────────────
 function loadCSV(input) {
   const file = input.files[0]; if (!file) return;
+  // Prima prova UTF-8, poi latin1 come fallback (alcuni CSV italiani sono ISO-8859-1)
+  const tryParse = (text) => {
+    const result = parseFantaCSV(text);
+    return result;
+  };
   const r = new FileReader();
   r.onload = e => {
-    parsedPlayers = parseFantaCSV(e.target.result);
-    if (parsedPlayers.length) {
-      $('csv-lbl').innerHTML = `<strong>✅ ${parsedPlayers.length} giocatori: ${file.name}</strong>`;
-      toast(`✅ ${parsedPlayers.length} giocatori caricati`);
-    } else toast('⚠️ Formato CSV non riconosciuto', 'err');
+    let result = tryParse(e.target.result);
+    if (result.length) {
+      parsedPlayers = result;
+      $('csv-lbl').innerHTML = `<strong>✅ ${result.length} giocatori: ${file.name}</strong>`;
+      toast(`✅ ${result.length} giocatori caricati`);
+    } else {
+      // Prova con latin1
+      const r2 = new FileReader();
+      r2.onload = e2 => {
+        result = tryParse(e2.target.result);
+        if (result.length) {
+          parsedPlayers = result;
+          $('csv-lbl').innerHTML = `<strong>✅ ${result.length} giocatori: ${file.name}</strong>`;
+          toast(`✅ ${result.length} giocatori caricati`);
+        } else {
+          toast('⚠️ Formato CSV non riconosciuto — verifica che sia il file di Fantacalcio.it', 'err', 5000);
+        }
+      };
+      r2.readAsText(file, 'iso-8859-1');
+    }
   };
   r.readAsText(file, 'utf-8');
 }
 
 function parseFantaCSV(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  if (!lines.length) return [];
-  const sep = lines[0].includes(';') ? ';' : ',';
-  const hdr = lines[0].toLowerCase().split(sep).map(h => h.replace(/[^a-z0-9]/g,''));
-  const iId = hdr.findIndex(h => h==='id');
-  const iR  = hdr.findIndex(h => h==='r'||h==='ruolo');
-  const iN  = hdr.findIndex(h => h.includes('nome'));
-  const iS  = hdr.findIndex(h => h.includes('squad'));
-  const iQ  = hdr.findIndex(h => h.startsWith('qt')||h.startsWith('qu'));
-  if (iN < 0) return [];
-  const RM = {P:'P',D:'D',C:'C',A:'A',T:'C',W:'C',M:'C',PC:'A',AS:'D'};
-  return lines.slice(1).map(line => {
-    const c = line.split(sep).map(x => x.trim().replace(/^"|"$/g,''));
-    const r = iR >= 0 ? (c[iR]||'').toUpperCase() : '?';
-    return { id:iId>=0?c[iId]:'', name:iN>=0?c[iN]:'?', role:RM[r]||r, team:iS>=0?c[iS]:'?', base:iQ>=0?(parseInt(c[iQ])||1):1 };
-  }).filter(p => p.name && p.name.length > 1);
+  // Rimuovi BOM UTF-8 se presente
+  text = text.replace(/^\uFEFF/, '');
+  // Normalizza line endings
+  const lines = text.split(/\r\n|\r|\n/).map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return [];
+
+  // Rileva separatore: prova ; poi ,
+  const sep = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ';' : ',';
+
+  const hdr = lines[0].toLowerCase().split(sep).map(h => h.trim().replace(/[^a-z0-9]/g, ''));
+
+  // Ricerca colonne con più varianti
+  const iId = hdr.findIndex(h => h === 'id' || h === 'cod' || h === 'codice');
+  const iR  = hdr.findIndex(h => h === 'r' || h === 'ruolo' || h === 'ruo' || h === 'pos');
+  const iN  = hdr.findIndex(h => h.includes('nome') || h === 'giocatore' || h === 'player');
+  const iS  = hdr.findIndex(h => h.includes('squad') || h === 'team' || h === 'club');
+  const iQ  = hdr.findIndex(h =>
+    h.startsWith('qt') || h.startsWith('qu') || h === 'prezzo' ||
+    h === 'valore' || h === 'quota' || h === 'price' || h === 'costo'
+  );
+
+  // Se non trovo la colonna nome, provo a usare la seconda colonna (formato compatto)
+  const nameCol = iN >= 0 ? iN : 1;
+
+  const RM = { P:'P', PO:'P', GK:'P', D:'D', DIF:'D', DEF:'D', C:'C', CEN:'C', MID:'C',
+               M:'C', T:'C', W:'C', A:'A', ATT:'A', FWD:'A', PC:'A', AS:'D' };
+
+  const result = lines.slice(1).map(line => {
+    // Gestione di valori tra virgolette con virgole interne
+    const c = line.split(sep).map(x => x.trim().replace(/^"|"$/g, ''));
+    if (c.length < 2) return null;
+    const rawRole = iR >= 0 ? (c[iR] || '').toUpperCase().trim() : '?';
+    const name = (c[nameCol] || '').trim();
+    if (!name || name.length < 2) return null;
+    return {
+      id:   iId >= 0 ? (c[iId] || '').trim() : '',
+      name,
+      role: RM[rawRole] || rawRole || '?',
+      team: iS >= 0 ? (c[iS] || '').trim() : '?',
+      base: iQ >= 0 ? (parseInt(c[iQ]) || 1) : 1
+    };
+  }).filter(Boolean);
+
+  return result;
 }
 
 function parseManual(text) {
@@ -882,6 +998,12 @@ function renderAdmin(s) {
   const queue = s.queue || [];
   $('search-count').textContent = queue.length ? `${queue.length} disponibili` : '';
 
+  // Lista giocatori rimanenti (ordinata alfabeticamente, non in ordine di estrazione)
+  renderQueueList($('qp-filter')?.value || '', s);
+
+  // Griglia assegnazioni per allenatore
+  renderAssignGrid(s);
+
   // Sezione offerte
   const bids = s.bids || [];
   show('a-bids-section', hasPlayer);
@@ -937,19 +1059,96 @@ function renderAdmin(s) {
         </div>`;
       }).join('')
     : '<span class="no-coaches">Nessun allenatore connesso</span>';
+}
 
-  // Assegnazioni
-  const assigned = s.assigned || [];
-  $('a-alist').innerHTML = assigned.length
-    ? assigned.slice().reverse().map(a =>
-        `<div class="aitem">
-          <span class="ar">${a.player.role}</span>
-          <span class="ap">${a.player.name}</span>
-          <span class="ac">${a.coachName}</span>
-          <span class="am">${a.amount} cr</span>
+// ── Lista giocatori rimanenti (sidebar destra) ─────────────────────────────────
+function renderQueueList(filter, s) {
+  s = s || lastState;
+  if (!s) return;
+  const queue = [...(s.queue || [])];
+  // Se c'è un giocatore attualmente in asta, lo escludiamo (già in uso)
+  const count = queue.length;
+  $('qp-count').textContent = `${count} rimasti`;
+
+  // Ordina alfabeticamente per nome (NON in ordine di estrazione)
+  queue.sort((a, b) => a.name.localeCompare(b.name, 'it'));
+
+  const f = (filter || '').trim().toLowerCase();
+  const filtered = f
+    ? queue.filter(p =>
+        p.name.toLowerCase().includes(f) ||
+        p.role.toLowerCase().includes(f) ||
+        p.team.toLowerCase().includes(f))
+    : queue;
+
+  const colors = { P:'#60aaff', D:'#60dd80', C:'#ffcc40', A:'#ff7060' };
+  $('qp-list').innerHTML = filtered.length
+    ? filtered.map(p =>
+        `<div class="q-item">
+          <span class="q-role ${p.role}" style="color:${colors[p.role]||'#aaa'}">${p.role}</span>
+          <span class="q-name">${p.name}</span>
+          <span class="q-team">${p.team}</span>
         </div>`
       ).join('')
-    : '<span class="dim">—</span>';
+    : '<span class="dim" style="padding:.3rem 0;display:block;text-align:center">Nessun risultato</span>';
+}
+
+// ── Griglia assegnazioni per allenatore ────────────────────────────────────────
+function renderAssignGrid(s) {
+  const grid = $('a-assign-grid');
+  if (!grid) return;
+
+  const coaches = s.coaches || {};
+  const assigned = s.assigned || [];
+  const coachIds = Object.keys(coaches);
+
+  if (!coachIds.length) {
+    grid.innerHTML = '<span class="dim">Nessun allenatore connesso</span>';
+    grid.style.gridTemplateColumns = '1fr';
+    return;
+  }
+
+  const N = coachIds.length;
+  grid.style.gridTemplateColumns = `repeat(${N}, minmax(130px, 1fr))`;
+
+  // Raggruppa assegnazioni per allenatore
+  const byCoach = {};
+  coachIds.forEach(id => { byCoach[id] = []; });
+  assigned.forEach(a => { if (byCoach[a.coachId]) byCoach[a.coachId].push(a); });
+
+  // Numero massimo di giocatori in qualsiasi rosa
+  const maxRows = Math.max(1, ...coachIds.map(id => byCoach[id].length));
+
+  let html = '';
+
+  // Intestazioni
+  coachIds.forEach(id => {
+    const c = coaches[id];
+    const bought = byCoach[id].length;
+    html += `<div class="ag-col-head">
+      <span class="ag-dot${c.online ? ' online' : ''}"></span>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</span>
+      <span class="ag-budget">${bought}/${ROSTER_SIZE} · ${c.budget}cr</span>
+    </div>`;
+  });
+
+  // Righe giocatori
+  for (let row = 0; row < maxRows; row++) {
+    coachIds.forEach(id => {
+      const a = byCoach[id][row];
+      if (a) {
+        html += `<div class="ag-cell">
+          <span class="ag-role">${a.player.role}</span>
+          <span class="ag-name">${a.player.name}</span>
+          <span class="ag-cr">${a.amount}</span>
+        </div>`;
+      } else {
+        html += `<div class="ag-cell"></div>`;
+      }
+    });
+  }
+
+  grid.innerHTML = html;
 }
 
 function showAdminWinner(winner, player) {
