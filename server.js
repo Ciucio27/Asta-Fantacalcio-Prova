@@ -33,7 +33,7 @@ function broadcast(data) {
 
 // Costruisce lo stato visibile per un client specifico
 function buildView(ws) {
-  const isAdmin = ws.role === 'admin';
+  const isAdmin = ws.role === 'admin' || ws.role === 'viewer';
   let visibleBids;
   if (state.bidsRevealed) {
     visibleBids = state.bids; // tutti vedono tutto
@@ -138,6 +138,13 @@ wss.on('connection', ws => {
         sendState(ws);
         break;
 
+      // ── Visualizzatore (sola lettura, vede tutto come admin) ─────────────────
+      case 'register_viewer':
+        ws.role = 'viewer';
+        sendTo(ws, { type: 'registered', role: 'viewer' });
+        sendState(ws);
+        break;
+
       // ── Coach: registra/ripristina via PIN ──────────────────────────────────
       case 'register_coach': {
         const pin = String(msg.pin || '').trim();
@@ -204,6 +211,7 @@ wss.on('connection', ws => {
         stopTimer();
         broadcastState();
         broadcast({ type: 'players_loaded', count: state.players.length });
+        setTimeout(saveBackup, 500); // salva subito dopo il caricamento
         break;
 
       // ── Admin: configura timer ──────────────────────────────────────────────
@@ -278,6 +286,7 @@ wss.on('connection', ws => {
         state.currentPlayer = null; state.bids = []; state.bidsRevealed = false;
         state.auctionActive = false; stopTimer();
         broadcastState();
+        setTimeout(saveBackup, 500); // salva subito dopo ogni assegnazione
         break;
       }
 
@@ -361,36 +370,54 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`   http://localhost:${PORT}   |   http://${ip}:${PORT}\n`);
 });
 
-// ─── Backup automatico ogni 15 minuti ─────────────────────────────────────────
+// ─── Backup automatico ────────────────────────────────────────────────────────
 const os = require('os');
-const BACKUP_DIR = path.join(os.homedir(), 'Desktop', 'Asta Fantacalcio');
+
+// Percorso backup: Desktop se esiste, altrimenti cartella del progetto
+function getBackupDir() {
+  const desktop = path.join(os.homedir(), 'Desktop', 'Asta Fantacalcio');
+  try {
+    // Prova a creare/verificare il Desktop
+    fs.mkdirSync(desktop, { recursive: true });
+    return desktop;
+  } catch (e) {
+    // Fallback: cartella del progetto
+    const local = path.join(__dirname, 'backup_asta');
+    fs.mkdirSync(local, { recursive: true });
+    return local;
+  }
+}
 
 function saveBackup() {
-  // Salta se non ci sono ancora dati
   if (!state.players.length && !state.assigned.length) return;
   try {
-    if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
-
+    const dir = getBackupDir();
     const now = new Date();
     const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
 
-    // Giocatori assegnati
+    // Giocatori assegnati (con rose per allenatore)
+    const coaches = Object.values(state.coaches);
     let csvA = 'Nome;Ruolo;Squadra;Allenatore;Crediti\n';
     (state.assigned || []).forEach(a => {
       csvA += `${a.player.name};${a.player.role};${a.player.team};${a.coachName};${a.amount}\n`;
     });
-    fs.writeFileSync(path.join(BACKUP_DIR, `assegnati_${ts}.csv`), '\uFEFF' + csvA, 'utf8');
+    fs.writeFileSync(path.join(dir, `assegnati_${ts}.csv`), '\uFEFF' + csvA, 'utf8');
 
     // Giocatori rimanenti
     let csvQ = 'Nome;Ruolo;Squadra;CreditiBase\n';
-    if (state.currentPlayer) csvQ += `${state.currentPlayer.name};${state.currentPlayer.role};${state.currentPlayer.team};${state.currentPlayer.base} [IN ASTA]\n`;
-    (state.queue || []).forEach(p => { csvQ += `${p.name};${p.role};${p.team};${p.base}\n`; });
-    fs.writeFileSync(path.join(BACKUP_DIR, `rimanenti_${ts}.csv`), '\uFEFF' + csvQ, 'utf8');
+    if (state.currentPlayer) {
+      csvQ += `${state.currentPlayer.name};${state.currentPlayer.role};${state.currentPlayer.team};${state.currentPlayer.base} [IN ASTA]\n`;
+    }
+    (state.queue || []).slice().sort((a,b) => a.name.localeCompare(b.name,'it')).forEach(p => {
+      csvQ += `${p.name};${p.role};${p.team};${p.base}\n`;
+    });
+    fs.writeFileSync(path.join(dir, `rimanenti_${ts}.csv`), '\uFEFF' + csvQ, 'utf8');
 
-    console.log(`💾 Backup ${ts} — ${state.assigned.length} assegnati, ${state.queue.length} rimasti`);
+    console.log(`💾 Backup ${ts} in: ${dir}`);
+    console.log(`   ${state.assigned.length} assegnati | ${state.queue.length} rimasti`);
   } catch (e) {
     console.error('⚠️  Backup fallito:', e.message);
   }
 }
 
-setInterval(saveBackup, 15 * 60 * 1000);
+setInterval(saveBackup, 20 * 60 * 1000);

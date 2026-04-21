@@ -352,6 +352,14 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .result-banner.win h2{color:var(--gold)}
 .result-banner.lose h2{color:var(--gray)}
 .result-banner p{font-size:.9rem;margin-top:.35rem;color:var(--white)}
+/* ── VIEWER MODE ── */
+.viewer-mode .timer-block,
+.viewer-mode .ctrl,
+.viewer-mode #search-block,
+.viewer-mode .export-row { display:none!important }
+.viewer-mode #a-bids-section { display:block!important }
+.viewer-topbar-badge{background:#1a2060;color:#88aaff;border:1px solid #3050a0;
+  border-radius:20px;padding:.18rem .7rem;font-size:.72rem;font-weight:700}
 </style>
 </head>
 <body>
@@ -366,6 +374,7 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
     <div class="row">
       <button class="btn btn-gold" onclick="showSetup('admin')">🖥 Admin</button>
       <button class="btn btn-out"  onclick="showSetup('coach')">📱 Allenatore</button>
+      <button class="btn btn-out"  onclick="showSetup('viewer')" style="color:#88aaff;border-color:#3050a0">👁 Visualizzatore</button>
     </div>
   </div>
 
@@ -400,6 +409,15 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
     </div>
     <button class="btn btn-g" onclick="connectCoach()" style="margin-top:1rem;width:100%">🔌 Connetti</button>
   </div>
+
+  <!-- Viewer setup -->
+  <div class="card hidden" id="s-viewer">
+    <div class="card-title">Accedi come Visualizzatore</div>
+    <p class="dim" style="margin-bottom:.7rem">Accesso in sola lettura: vedrai il giocatore in asta, le rose e la lista dei giocatori disponibili.</p>
+    <label class="lbl">Indirizzo server</label>
+    <input id="ws-v" type="text" placeholder="wss://tuo-server.railway.app">
+    <button class="btn btn-out" onclick="connectViewer()" style="margin-top:1rem;width:100%;color:#88aaff;border-color:#3050a0">👁 Entra come Visualizzatore</button>
+  </div>
 </div>
 
 <!-- ════════════════════ ADMIN ════════════════════ -->
@@ -408,6 +426,7 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
     <div class="topbar-title">⚽ Asta Fantacalcio</div>
     <div class="row">
       <span class="badge badge-err" id="conn-badge">Offline</span>
+      <span class="viewer-topbar-badge hidden" id="viewer-badge">👁 Visualizzatore</span>
       <span class="dim" id="queue-lbl"></span>
     </div>
   </div>
@@ -640,12 +659,12 @@ function toast(msg, type='ok', ms=2800) {
 
 // ── Setup UI ───────────────────────────────────────────────────────────────────
 function showSetup(which) {
-  show('s-admin', which === 'admin');
-  show('s-coach', which === 'coach');
-  if (which === 'coach') {
-    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    $('ws-c').value = `${proto}://${location.host}`;
-  }
+  show('s-admin',  which === 'admin');
+  show('s-coach',  which === 'coach');
+  show('s-viewer', which === 'viewer');
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  if (which === 'coach')  $('ws-c').value = `${proto}://${location.host}`;
+  if (which === 'viewer') $('ws-v').value = `${proto}://${location.host}`;
 }
 
 // ── CSV Parser ─────────────────────────────────────────────────────────────────
@@ -765,6 +784,18 @@ function connectCoach() {
       budget: parseInt($('c-budget').value) || 500 });
     $('setup').classList.add('hidden');
     $('coach').style.display = 'block';
+  });
+}
+
+function connectViewer() {
+  const wsUrl = buildWsUrl($('ws-v').value);
+  myRole = 'viewer';
+  initWS(wsUrl, () => {
+    sndObj({ type: 'register_viewer' });
+    $('setup').classList.add('hidden');
+    $('admin').style.display = 'block';
+    $('admin').classList.add('viewer-mode');
+    show('viewer-badge', true);
   });
 }
 
@@ -890,7 +921,7 @@ function handleMsg(msg) {
   switch (msg.type) {
     case 'state':
       lastState = msg.state;
-      if (myRole==='admin') renderAdmin(msg.state);
+      if (myRole==='admin' || myRole==='viewer') renderAdmin(msg.state);
       if (myRole==='coach') renderCoach(msg.state);
       break;
 
