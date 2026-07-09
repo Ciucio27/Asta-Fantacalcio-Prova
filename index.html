@@ -122,11 +122,11 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
   padding:1.1rem 1.3rem;text-align:center;position:relative;overflow:hidden;margin-bottom:.7rem}
 .pcard::before{content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse at top,#2d9e5c18,transparent 65%);pointer-events:none}
-.p-role{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;
-  letter-spacing:3px;color:var(--gl);text-transform:uppercase}
+.p-role{font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;
+  letter-spacing:2px;color:var(--gl);font-weight:700}
 .p-name{font-family:'Bebas Neue',sans-serif;
   font-size:clamp(2.2rem,6.5vw,3.8rem);color:var(--white);letter-spacing:2px;line-height:1.1}
-.p-team{font-size:.88rem;color:var(--gray)}
+.p-team{font-size:1.05rem;color:var(--gray);font-weight:600;margin-top:.1rem}
 .p-price{font-size:.82rem;color:var(--gold);font-family:'Barlow Condensed',sans-serif;margin-top:.2rem}
 .p-queue{font-size:.72rem;color:var(--dim);margin-top:.1rem}
 .no-player{background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius-lg);
@@ -300,10 +300,11 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 
 .mp-card{background:var(--bg2);border:2px solid var(--gl);border-radius:var(--radius-lg);
   padding:1.1rem;text-align:center;margin-bottom:.9rem}
-.mp-role{font-size:.7rem;letter-spacing:3px;color:var(--gl);text-transform:uppercase}
+.mp-role{font-family:'Barlow Condensed',sans-serif;font-size:1rem;
+  letter-spacing:2px;color:var(--gl);font-weight:700}
 .mp-name{font-family:'Bebas Neue',sans-serif;
   font-size:clamp(2rem,9vw,3.2rem);color:var(--white);line-height:1.1}
-.mp-team{font-size:.82rem;color:var(--gray)}
+.mp-team{font-size:.98rem;color:var(--gray);font-weight:600;margin-top:.1rem}
 .mp-price{font-size:.8rem;color:var(--gold);font-family:'Barlow Condensed',sans-serif}
 
 /* timer coach */
@@ -738,28 +739,15 @@ function parseFantaCSV(text) {
     return fields;
   }
 
-  // Normalizzazione ruoli: mappa i codici Fantacalcio ai codici display
-  const RM = {
-    'P':'P',  'Por':'P', 'PO':'P',
-    'D':'D',  'Dc':'D',  'Dd':'D', 'Ds':'D', 'Dt':'D',
-    'C':'C',  'Cc':'C',  'M':'C',  'T':'C',  'W':'C',  'E':'C', 'Mf':'C', 'Mo':'C',
-    'A':'A',  'Pc':'A',  'Tr':'A', 'As':'A', 'At':'A'
-  };
-
-  function normalizeRoles(raw) {
-    if (!raw) return '?';
-    // Rimuovi virgolette residue
-    raw = raw.replace(/^"|"$/g, '').trim();
-    // Può essere "Pc,T" o "D" o "Dc;Dd" — split su , o ;
-    const parts = raw.split(/[,;]/).map(r => r.trim()).filter(Boolean);
-    // Mappa ogni parte e prendi la prima lettera maiuscola come gruppo base
-    const mapped = parts.map(r => {
-      const upper = r.charAt(0).toUpperCase() + r.slice(1);
-      return RM[upper] || RM[r.toUpperCase()] || r.charAt(0).toUpperCase();
-    });
-    // Deduplica mantenendo l'ordine, unisci con \
-    const unique = [...new Set(mapped)];
-    return unique.join('\\');
+  // Ruoli: prende il campo esatto dalla colonna 3, rimuove le virgolette
+  // e sostituisce il separatore ; con / per la visualizzazione.
+  // Nessuna mappatura o normalizzazione — i codici vengono mostrati così come sono nel CSV.
+  function extractRoles(raw) {
+    if (!raw) return '';
+    return raw
+      .replace(/^"|"$/g, '')  // rimuovi virgolette esterne
+      .trim()
+      .replace(/;/g, '/');    // sostituisci ; con /
   }
 
   const lines = rawLines.map(l => l.trim()).filter(Boolean);
@@ -774,7 +762,7 @@ function parseFantaCSV(text) {
     if (cols.length < 6) continue;
 
     const id    = (cols[0] || '').trim();
-    const role  = normalizeRoles(cols[2]);  // colonna 3 (1-based)
+    const role  = extractRoles(cols[2]);    // colonna 3 (1-based) — ruoli as-is
     const name  = (cols[3] || '').trim();   // colonna 4
     const team  = (cols[4] || '').trim();   // colonna 5
     const base  = parseInt(cols[5]) || 1;   // colonna 6
