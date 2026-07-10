@@ -204,10 +204,23 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .aitem .am{color:var(--gold);font-family:'Barlow Condensed',sans-serif;
   font-size:1rem;font-weight:700;flex-shrink:0}
 
-/* export */
+/* export / ripristino */
 .export-row{display:flex;align-items:center;gap:.6rem;
   margin-top:.6rem;padding:.65rem .8rem;background:var(--bg2);
   border:1px solid var(--border);border-radius:var(--radius)}
+.restore-block{background:#0f1e28;border:1px solid #1a3a50;border-radius:var(--radius-lg);
+  padding:.8rem 1rem;margin-top:.7rem}
+.restore-block .rb-title{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;
+  color:#4a90c0;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.6rem}
+.restore-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem}
+.restore-row:last-child{margin-bottom:0}
+.restore-row .dim{font-size:.75rem}
+.file-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.38rem .8rem;
+  border-radius:6px;border:1px solid #1a3a50;background:#0d1e30;color:#7ab8e0;
+  font-family:'Barlow Condensed',sans-serif;font-size:.82rem;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.file-btn:hover{background:#1a3a50;color:#aad8ff}
+.file-btn input{display:none}
 
 /* griglia assegnazioni per allenatore */
 .assign-grid-wrap{overflow-x:auto;margin:.4rem 0}
@@ -514,9 +527,32 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
           <span class="dim">—</span>
         </div>
       </div>
-      <div class="export-row">
-        <button class="btn btn-out" style="padding:.38rem .8rem;font-size:.8rem" onclick="exportCSV()">📥 Esporta CSV</button>
-        <span class="dim">Compatibile con Leghe Fantacalcio.it → Admin → Gestione Rose → Importa</span>
+
+      <!-- Export -->
+      <div class="export-row" style="flex-wrap:wrap">
+        <button class="btn btn-out" style="padding:.38rem .8rem;font-size:.8rem" onclick="exportCSV()">📥 Esporta per Fantacalcio.it</button>
+        <button class="btn btn-out" style="padding:.38rem .8rem;font-size:.8rem" onclick="exportAssignedBackup()">💾 Salva rose</button>
+        <button class="btn btn-out" style="padding:.38rem .8rem;font-size:.8rem" onclick="exportQueue()">📋 Esporta giocatori restanti</button>
+      </div>
+
+      <!-- Blocco ripristino -->
+      <div class="restore-block">
+        <div class="rb-title">🔄 Ripristino asta (dopo riavvio)</div>
+        <div class="restore-row">
+          <span class="dim">1. Carica i giocatori restanti:</span>
+          <label class="file-btn">
+            <input type="file" accept=".csv" onchange="loadQueueRestore(this)">
+            📂 Carica giocatori restanti
+          </label>
+        </div>
+        <div class="restore-row">
+          <span class="dim">2. Ripristina le rose:</span>
+          <label class="file-btn">
+            <input type="file" accept=".csv" onchange="loadAssignmentsRestore(this)">
+            📂 Ripristina rose
+          </label>
+        </div>
+        <p class="dim" style="margin-top:.4rem">Usa i file salvati con "Salva rose" ed "Esporta giocatori restanti". Importa prima i giocatori restanti, poi le rose.</p>
       </div>
 
     </div><!-- /admin-main -->
@@ -973,7 +1009,11 @@ function handleMsg(msg) {
       break;
 
     case 'players_loaded':
-      toast(`✅ ${msg.count} giocatori caricati e rimescolati`);
+      if (msg.keepAssigned) toast(`✅ ${msg.count} giocatori caricati — rose mantenute`,'ok');
+      else toast(`✅ ${msg.count} giocatori caricati e rimescolati`,'ok');
+      break;
+    case 'assignments_imported':
+      toast(`✅ ${msg.count} assegnazioni ripristinate`,'ok');
       break;
 
     case 'new_player':
@@ -1388,20 +1428,15 @@ function submitBid() {
   sndObj({ type:'bid', coachId: myCoachId || undefined, coachName: myCoachName || undefined, amount });
 }
 
-// ── Export CSV Leghe Fantacalcio.it ────────────────────────────────────────────
-// Formato: una sezione per allenatore, intestazione + righe giocatori
-// Id;Nome;R;Squadra;Qt.A;Qt.I
+// ── Export per Leghe Fantacalcio.it (formato originale) ───────────────────────
 function exportCSV() {
   const assigned = lastState?.assigned || [];
   if (!assigned.length) { toast('Nessuna assegnazione da esportare','err'); return; }
-
-  // Raggruppa per allenatore
   const byCoach = {};
   assigned.forEach(a => {
     if (!byCoach[a.coachId]) byCoach[a.coachId] = { name: a.coachName, rows: [] };
     byCoach[a.coachId].rows.push(a);
   });
-
   let csv = '';
   Object.values(byCoach).forEach(coach => {
     csv += `### ${coach.name}\n`;
@@ -1411,13 +1446,96 @@ function exportCSV() {
     });
     csv += '\n';
   });
+  downloadCSV(csv, 'rose_fantacalcio.csv');
+  toast('📥 Esportato per Fantacalcio.it');
+}
 
+// ── Export rose in formato reimportabile ───────────────────────────────────────
+function exportAssignedBackup() {
+  const assigned = lastState?.assigned || [];
+  if (!assigned.length) { toast('Nessuna assegnazione da esportare','err'); return; }
+  let csv = 'Id;NomeGiocatore;Ruolo;Squadra;CreditiBase;NomeAllenatore;CreditiPagati\n';
+  assigned.forEach(a => {
+    csv += `${a.player.id||''};${a.player.name};${a.player.role};${a.player.team};${a.player.base||1};${a.coachName};${a.amount}\n`;
+  });
+  const ts = new Date().toLocaleString('it-IT',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/[/:, ]/g,'-').replace(/-+/g,'-');
+  downloadCSV(csv, `rose_backup_${ts}.csv`);
+  toast('💾 Rose salvate');
+}
+
+// ── Export giocatori restanti ──────────────────────────────────────────────────
+function exportQueue() {
+  const queue = lastState?.queue || [];
+  if (!queue.length) { toast('Nessun giocatore rimanente','err'); return; }
+  let csv = 'Id;Ruolo;NomeGiocatore;Squadra;CreditiBase\n';
+  [...queue].sort((a,b) => a.name.localeCompare(b.name,'it')).forEach(p => {
+    csv += `${p.id||''};${p.role};${p.name};${p.team};${p.base}\n`;
+  });
+  const ts = new Date().toLocaleString('it-IT',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/[/:, ]/g,'-').replace(/-+/g,'-');
+  downloadCSV(csv, `giocatori_restanti_${ts}.csv`);
+  toast('📋 Lista restanti esportata');
+}
+
+// ── Helper download ────────────────────────────────────────────────────────────
+function downloadCSV(csv, filename) {
   const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
-  const el   = document.createElement('a');
-  el.href = url; el.download = 'rose_asta.csv'; el.click();
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
-  toast('📥 CSV scaricato con successo');
+}
+
+// ── Import giocatori restanti (ripristino) ─────────────────────────────────────
+// Usa set_players con keepAssigned=true: aggiorna la coda senza azzerare rose
+function loadQueueRestore(input) {
+  const file = input.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const text = e.target.result.replace(/^\uFEFF/,'');
+    const lines = text.split(/\r\n|\r|\n/).map(l=>l.trim()).filter(Boolean);
+    if (lines.length < 2) { toast('File vuoto o non valido','err'); return; }
+    const sep = lines[0].includes(';') ? ';' : ',';
+    const players = lines.slice(1).map(line => {
+      // Formato: Id;Ruolo;NomeGiocatore;Squadra;CreditiBase
+      const c = line.split(sep).map(x=>x.trim().replace(/^"|"$/g,''));
+      return { id:c[0]||'', role:c[1]||'?', name:c[2]||'?', team:c[3]||'?', base:parseInt(c[4])||1 };
+    }).filter(p => p.name && p.name.length > 1);
+    if (!players.length) { toast('Nessun giocatore trovato nel file','err'); return; }
+    sndObj({ type:'set_players', players, keepAssigned: true });
+    input.value = '';
+    toast(`📂 ${players.length} giocatori restanti caricati`,'ok');
+  };
+  r.readAsText(file,'utf-8');
+}
+
+// ── Import rose (ripristino assegnazioni) ──────────────────────────────────────
+function loadAssignmentsRestore(input) {
+  const file = input.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const text = e.target.result.replace(/^\uFEFF/,'');
+    const lines = text.split(/\r\n|\r|\n/).map(l=>l.trim()).filter(Boolean);
+    if (lines.length < 2) { toast('File vuoto o non valido','err'); return; }
+    const sep = lines[0].includes(';') ? ';' : ',';
+    // Formato: Id;NomeGiocatore;Ruolo;Squadra;CreditiBase;NomeAllenatore;CreditiPagati
+    const rows = lines.slice(1).map(line => {
+      const c = line.split(sep).map(x=>x.trim().replace(/^"|"$/g,''));
+      return {
+        playerId:    c[0]||'',
+        playerName:  c[1]||'?',
+        playerRole:  c[2]||'?',
+        playerTeam:  c[3]||'?',
+        playerBase:  parseInt(c[4])||1,
+        coachName:   c[5]||'?',
+        amount:      parseInt(c[6])||0
+      };
+    }).filter(row => row.playerName.length > 1 && row.coachName.length > 1);
+    if (!rows.length) { toast('Nessuna riga valida trovata','err'); return; }
+    sndObj({ type:'import_assignments', rows });
+    input.value = '';
+    toast(`📂 Importazione ${rows.length} assegnazioni...`,'info');
+  };
+  r.readAsText(file,'utf-8');
 }
 </script>
 </body>

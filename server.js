@@ -202,17 +202,80 @@ wss.on('connection', ws => {
       }
 
       // ── Admin: imposta giocatori ────────────────────────────────────────────
+      // msg.keepAssigned = true → ripristino (non azzerare rose e budget)
       case 'set_players':
         state.players = msg.players || [];
         state.queue = shuffle(state.players);
         state.currentPlayer = null;
         state.bids = []; state.bidsRevealed = false;
-        state.assigned = []; state.auctionActive = false;
+        state.auctionActive = false;
         stopTimer();
+        if (!msg.keepAssigned) {
+          // Fresh start: azzera rose e budget
+          state.assigned = [];
+          // Resetta i budget ai valori iniziali per tutti i coach connessi
+          Object.keys(state.coaches).forEach(id => {
+            const pin = state.coaches[id].pin;
+            if (sessions[pin]) {
+              state.coaches[id].budget = sessions[pin].budgetInitial;
+              sessions[pin].budgetCurrent = sessions[pin].budgetInitial;
+            }
+          });
+        }
         broadcastState();
-        broadcast({ type: 'players_loaded', count: state.players.length });
-        setTimeout(saveBackup, 500); // salva subito dopo il caricamento
+        broadcast({ type: 'players_loaded', count: state.players.length, keepAssigned: !!msg.keepAssigned });
+        setTimeout(saveBackup, 500);
         break;
+
+      // ── Admin: importa rose (ripristino assegnazioni) ───────────────────────
+      // rows = [{ playerName, playerRole, playerTeam, playerBase, coachName, amount }]
+      case 'import_assignments': {
+        const rows = msg.rows || [];
+        if (!rows.length) break;
+
+        // Resetta le assegnazioni correnti
+        state.assigned = [];
+
+        // Resetta i budget ai valori iniziali, poi ricalcola
+        Object.keys(state.coaches).forEach(id => {
+          const pin = state.coaches[id].pin;
+          if (sessions[pin]) {
+            state.coaches[id].budget = sessions[pin].budgetInitial;
+            sessions[pin].budgetCurrent = sessions[pin].budgetInitial;
+          }
+        });
+
+        rows.forEach(row => {
+          // Cerca il coach per nome tra quelli connessi
+          const entry = Object.entries(state.coaches).find(([, c]) => c.name === row.coachName);
+          const coachId   = entry ? entry[0] : ('ghost_' + row.coachName.replace(/\s+/g,'_'));
+          const coachName = row.coachName;
+
+          state.assigned.push({
+            player: {
+              id:   row.playerId || '',
+              name: row.playerName,
+              role: row.playerRole,
+              team: row.playerTeam,
+              base: parseInt(row.playerBase) || 1
+            },
+            coachId, coachName, amount: parseInt(row.amount) || 0
+          });
+
+          // Scala il budget del coach se è connesso
+          if (entry) {
+            const id  = entry[0];
+            const pin = state.coaches[id].pin;
+            state.coaches[id].budget -= parseInt(row.amount) || 0;
+            if (sessions[pin]) sessions[pin].budgetCurrent = state.coaches[id].budget;
+          }
+        });
+
+        broadcastState();
+        broadcast({ type: 'assignments_imported', count: rows.length });
+        saveBackup();
+        break;
+      }
 
       // ── Admin: configura timer ──────────────────────────────────────────────
       case 'set_timer':
