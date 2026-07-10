@@ -373,17 +373,17 @@ server.listen(PORT, '0.0.0.0', () => {
 // ─── Backup automatico ────────────────────────────────────────────────────────
 const os = require('os');
 
-// Percorso backup: Desktop se esiste, altrimenti cartella del progetto
+const BACKUP_DIR = path.join('C:\\', 'Users', 'lmarino', 'Desktop', 'Asta');
+
 function getBackupDir() {
-  const desktop = path.join(os.homedir(), 'Desktop', 'Asta Fantacalcio');
   try {
-    // Prova a creare/verificare il Desktop
-    fs.mkdirSync(desktop, { recursive: true });
-    return desktop;
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    return BACKUP_DIR;
   } catch (e) {
-    // Fallback: cartella del progetto
+    // Fallback: cartella del progetto se il percorso non è raggiungibile
     const local = path.join(__dirname, 'backup_asta');
     fs.mkdirSync(local, { recursive: true });
+    console.warn(`⚠️  Impossibile scrivere in ${BACKUP_DIR}, uso: ${local}`);
     return local;
   }
 }
