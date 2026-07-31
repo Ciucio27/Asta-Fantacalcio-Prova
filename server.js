@@ -123,7 +123,29 @@ const server = http.createServer((req, res) => {
 // ─── WebSocket ─────────────────────────────────────────────────────────────────
 const wss = new WebSocket.Server({ server });
 
+// Heartbeat: il server manda un ping ogni 20s.
+// Se il client non risponde entro 25s viene terminato e rimosso.
+const PING_INTERVAL  = 20000; // ms tra un ping e l'altro
+const PING_TIMEOUT   = 25000; // ms prima di considerare il client morto
+
+function startHeartbeat() {
+  setInterval(() => {
+    wss.clients.forEach(ws => {
+      if (!ws._alive) {
+        // Nessun pong all'ultimo ping → termina la connessione
+        ws.terminate();
+        return;
+      }
+      ws._alive = false;
+      try { ws.ping(); } catch (_) {}
+    });
+  }, PING_INTERVAL);
+}
+
 wss.on('connection', ws => {
+  ws._alive = true;
+  ws.on('pong', () => { ws._alive = true; }); // risposta al ping del server
+
   sendState(ws); // manda stato iniziale
 
   ws.on('message', raw => {
@@ -431,6 +453,7 @@ server.listen(PORT, '0.0.0.0', () => {
       if (net.family === 'IPv4' && !net.internal) { ip = net.address; break; }
   console.log(`\n⚽  Asta Fantacalcio v4`);
   console.log(`   http://localhost:${PORT}   |   http://${ip}:${PORT}\n`);
+  startHeartbeat();
 });
 
 // ─── Backup automatico ────────────────────────────────────────────────────────

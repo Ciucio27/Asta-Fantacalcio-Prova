@@ -228,8 +228,16 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
   padding:.38rem .3rem;border-bottom:1px solid var(--border)}
 .coach-row:last-child{border:none}
 .coach-row .cr-name{font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:.4rem}
-.coach-row .cr-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0}
-.coach-row .cr-dot.online{background:var(--gl)}
+.coach-row .cr-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  background:var(--red);box-shadow:0 0 4px var(--red);
+  transition:background .4s,box-shadow .4s}
+.coach-row .cr-dot.online{
+  background:#22dd66;box-shadow:0 0 6px #22dd66;
+  animation:pulse-dot 2s ease infinite}
+@keyframes pulse-dot{
+  0%,100%{box-shadow:0 0 4px #22dd66}
+  50%{box-shadow:0 0 10px #22dd6688}}
 .coach-row .cr-budget{font-size:.8rem;color:var(--gl);font-family:'Barlow Condensed',sans-serif}
 .coach-row .cr-check{font-size:1rem;color:var(--gl);opacity:0;transition:opacity .3s}
 .coach-row .cr-check.show{opacity:1}
@@ -408,7 +416,14 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .result-banner.win h2{color:var(--gold)}
 .result-banner.lose h2{color:var(--gray)}
 .result-banner p{font-size:.9rem;margin-top:.35rem;color:var(--white)}
-/* ── VIEWER MODE ── */
+/* banner riconnessione coach */
+.co-conn-banner{background:#3a1414;border-bottom:2px solid var(--red);
+  color:#ffaaaa;font-size:.85rem;font-weight:600;padding:.55rem 1rem;
+  display:flex;align-items:center;gap:.6rem;position:sticky;top:0;z-index:100}
+.ccb-dot{width:8px;height:8px;border-radius:50%;background:var(--red);
+  flex-shrink:0;animation:blink .6s ease infinite alternate}
+
+/* ─── VIEWER MODE ─── */
 .viewer-mode .timer-block,
 .viewer-mode .ctrl,
 .viewer-mode #search-block,
@@ -654,6 +669,11 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 
 <!-- ════════════════════ COACH ════════════════════ -->
 <div id="coach">
+  <!-- Banner riconnessione (visibile solo quando offline) -->
+  <div id="co-conn-banner" class="hidden co-conn-banner">
+    <span class="ccb-dot"></span>
+    Connessione persa — riconnessione in corso...
+  </div>
   <div class="ch-head">
     <div class="ch-name" id="co-name">—</div>
     <div class="ch-budget">Budget: <strong id="co-budget">—</strong> cr</div>
@@ -908,9 +928,12 @@ function connectAdmin() {
   });
 }
 
+let _lastPin = '';
+
 function connectCoach() {
   const pin = String($('pin-in').value).trim();
   if (!pin) { toast('Inserisci il PIN','err'); return; }
+  _lastPin = pin;
   myRole = 'coach';
   initWS(buildWsUrl($('ws-c').value), () => {
     sndObj({ type:'register_coach', pin,
@@ -933,21 +956,126 @@ function connectViewer() {
   });
 }
 
+// ── Connessione WebSocket con watchdog e auto-reconnect ────────────────────────
+let wsUrl = '';
+let wsOnOpen = null;
+let reconnectTimer = null;
+let reconnectDelay = 2000;  // backoff: parte da 2s, raddoppia fino a 30s
+let clientPingTimer = null;
+let isReconnecting = false;
+
 function initWS(url, onOpen) {
-  ws = new WebSocket(url);
-  ws.onopen   = () => { onOpen(); setBadge(true); };
-  ws.onmessage = e => handleMsg(JSON.parse(e.data));
-  ws.onerror  = () => toast('❌ Errore connessione','err',5000);
-  ws.onclose  = () => { setBadge(false); toast('⚠️ Connessione persa — ricarica','err',7000); };
+  wsUrl    = url;
+  wsOnOpen = onOpen;
+  reconnectDelay = 2000;
+  _connect();
+}
+
+function _connect() {
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  if (clientPingTimer) { clearInterval(clientPingTimer); clientPingTimer = null; }
+
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    isReconnecting = false;
+    reconnectDelay = 2000;
+    setBadge(true);
+    showCoachConnBanner(false);
+
+    // Ping lato client ogni 15s per tenere viva la connessione su mobile
+    // (i proxy mobili chiudono connessioni idle dopo ~30s)
+    clientPingTimer = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        sndObj({ type: 'client_ping' });
+      }
+    }, 15000);
+
+    wsOnOpen();
+  };
+
+  ws.onmessage = e => {
+    try { handleMsg(JSON.parse(e.data)); } catch (_) {}
+  };
+
+  ws.onerror = () => {};  // gestito in onclose
+
+  ws.onclose = () => {
+    setBadge(false);
+    if (clientPingTimer) { clearInterval(clientPingTimer); clientPingTimer = null; }
+
+    if (!isReconnecting) {
+      isReconnecting = true;
+      // Mostra banner di riconnessione agli allenatori
+      showCoachConnBanner(true);
+      toast('⚠️ Connessione persa — riconnessione in corso...', 'err', 4000);
+    }
+
+    // Auto-reconnect con backoff esponenziale (max 30s)
+    reconnectTimer = setTimeout(() => {
+      reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
+      _reconnect();
+    }, reconnectDelay);
+  };
+}
+
+function _reconnect() {
+  if (clientPingTimer) { clearInterval(clientPingTimer); clientPingTimer = null; }
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    isReconnecting = false;
+    reconnectDelay = 2000;
+    setBadge(true);
+    showCoachConnBanner(false);
+    toast('✅ Riconnesso!', 'ok', 3000);
+
+    clientPingTimer = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) sndObj({ type: 'client_ping' });
+    }, 15000);
+
+    // Re-registra il ruolo automaticamente
+    if (myRole === 'coach' && myCoachId) {
+      // Ri-registra con il PIN per ripristinare la sessione
+      const pin = _lastPin;
+      if (pin) sndObj({ type:'register_coach', pin, coachName: myCoachName, budget: 500 });
+    } else if (myRole === 'admin') {
+      sndObj({ type: 'register_admin' });
+    } else if (myRole === 'viewer') {
+      sndObj({ type: 'register_viewer' });
+    }
+  };
+
+  ws.onmessage = e => {
+    try { handleMsg(JSON.parse(e.data)); } catch (_) {}
+  };
+
+  ws.onerror = () => {};
+
+  ws.onclose = () => {
+    setBadge(false);
+    showCoachConnBanner(true);
+    reconnectTimer = setTimeout(() => {
+      reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
+      _reconnect();
+    }, reconnectDelay);
+  };
+}
+
+// Banner di riconnessione visibile sullo schermo del coach
+function showCoachConnBanner(show) {
+  let banner = $('co-conn-banner');
+  if (!banner) return;
+  banner.classList.toggle('hidden', !show);
 }
 
 function snd(type) { sndObj({ type }); }
-function sndObj(obj) { if (ws && ws.readyState===1) ws.send(JSON.stringify(obj)); }
+function sndObj(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
 
 function setBadge(ok) {
   const el = $('conn-badge'); if (!el) return;
   el.textContent = ok ? 'Connesso ✓' : 'Offline';
-  el.className = 'badge '+(ok?'badge-ok':'badge-err');
+  el.className = 'badge ' + (ok ? 'badge-ok' : 'badge-err');
 }
 
 // ── Timer — tasto toggle ────────────────────────────────────────────────────────
