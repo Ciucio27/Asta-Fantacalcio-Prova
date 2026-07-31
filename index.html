@@ -623,10 +623,17 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
           <!-- Filtro ruolo -->
           <div class="role-btns">
             <button class="rbtn r-all active" onclick="setRoleFilter('ALL')">Tutti</button>
-            <button class="rbtn r-P" onclick="setRoleFilter('P')">P</button>
-            <button class="rbtn r-D" onclick="setRoleFilter('D')">D</button>
-            <button class="rbtn r-C" onclick="setRoleFilter('C')">C</button>
-            <button class="rbtn r-A" onclick="setRoleFilter('A')">A</button>
+            <button class="rbtn r-Por" onclick="setRoleFilter('Por')">Por</button>
+            <button class="rbtn r-Ds"  onclick="setRoleFilter('Ds')">Ds</button>
+            <button class="rbtn r-Dd"  onclick="setRoleFilter('Dd')">Dd</button>
+            <button class="rbtn r-Dc"  onclick="setRoleFilter('Dc')">Dc</button>
+            <button class="rbtn r-E"   onclick="setRoleFilter('E')">E</button>
+            <button class="rbtn r-M"   onclick="setRoleFilter('M')">M</button>
+            <button class="rbtn r-C"   onclick="setRoleFilter('C')">C</button>
+            <button class="rbtn r-T"   onclick="setRoleFilter('T')">T</button>
+            <button class="rbtn r-W"   onclick="setRoleFilter('W')">W</button>
+            <button class="rbtn r-A"   onclick="setRoleFilter('A')">A</button>
+            <button class="rbtn r-Pc"  onclick="setRoleFilter('Pc')">Pc</button>
           </div>
           <!-- Squadra + sort -->
           <div class="qp-row2">
@@ -1230,11 +1237,34 @@ function setRoleFilter(role) {
   queueFilters.role = role;
   // Aggiorna classe active sui pulsanti
   document.querySelectorAll('.rbtn').forEach(b => {
-    const r = b.classList[1]?.replace('r-','');
-    b.classList.toggle('active', r === role || (role==='ALL' && r==='all'));
+    // Il pulsante "Tutti" ha classe r-all, gli altri r-Por, r-Ds, ecc.
+    const classList = [...b.classList];
+    const rClass = classList.find(c => c.startsWith('r-'));
+    const rVal = rClass ? rClass.slice(2) : '';
+    b.classList.toggle('active',
+      (role === 'ALL' && rVal === 'all') ||
+      (role !== 'ALL' && rVal === role)
+    );
   });
   applyQueueFilters();
 }
+
+// CSS dinamico per i pulsanti ruolo specifici (colore unificato per gruppo)
+const ROLE_COLORS = {
+  Por: '#4499ee',
+  Ds: '#33bb55', Dd: '#33bb55', Dc: '#33bb55',
+  E: '#ccaa22', M: '#ccaa22', C: '#ccaa22', T: '#ccaa22', W: '#ccaa22',
+  A: '#cc4433', Pc: '#cc4433'
+};
+// Inietta stili active dinamicamente una volta sola
+(function injectRoleStyles() {
+  const styles = Object.entries(ROLE_COLORS).map(([r, col]) =>
+    `.rbtn.r-${r}.active { background:${col}; color:#fff; border-color:transparent; }`
+  ).join('\n');
+  const tag = document.createElement('style');
+  tag.textContent = styles;
+  document.head.appendChild(tag);
+})();
 
 function toggleQueueSort() {
   const btn = $('qp-sort-btn');
@@ -1284,7 +1314,11 @@ function renderQueueList(filter, s) {
   const roleColors = { P:'#4499ee', D:'#33bb55', C:'#ccaa22', A:'#cc4433' };
 
   let filtered = queue.filter(p => {
-    const matchRole = queueFilters.role === 'ALL' || p.role.startsWith(queueFilters.role);
+    // Il campo role può contenere più ruoli separati da / (es. "Dd/Dc")
+    // Il filtro scatta se ALMENO UNO dei ruoli del giocatore corrisponde
+    const playerRoles = p.role ? p.role.split('/').map(r => r.trim()) : [];
+    const matchRole = queueFilters.role === 'ALL' ||
+      playerRoles.some(r => r.toLowerCase() === queueFilters.role.toLowerCase());
     const matchTeam = !queueFilters.team || p.team === queueFilters.team;
     const matchText = !queueFilters.text ||
       p.name.toLowerCase().includes(queueFilters.text) ||
