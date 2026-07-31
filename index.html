@@ -983,13 +983,13 @@ function _connect() {
     setBadge(true);
     showCoachConnBanner(false);
 
-    // Keepalive ogni 7s — mantiene viva la connessione su mobile
-    // e arriva sempre prima del ping server (8s), evitando falsi timeout
+    // Keepalive ogni 2.5s — mantiene viva la connessione su mobile
+    // e arriva sempre prima del ping server (3s), evitando falsi timeout
     clientPingTimer = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         sndObj({ type: 'client_ping' });
       }
-    }, 7000);
+    }, 2500);
 
     wsOnOpen();
   };

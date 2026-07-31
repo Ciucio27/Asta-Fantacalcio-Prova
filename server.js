@@ -125,8 +125,12 @@ const wss = new WebSocket.Server({ server });
 
 // Heartbeat: il server manda un ping ogni 20s.
 // Se il client non risponde entro 25s viene terminato e rimosso.
-const PING_INTERVAL  = 8000;  // ping ogni 8s — rilevamento caduta entro ~16s
-const PING_TIMEOUT   = 12000; // non usato direttamente, un ciclo mancato = terminate
+const PING_INTERVAL  = 3000;  // ping ogni 3s — rilevamento caduta entro 3-6s
+const PING_TIMEOUT   = 6000;  // riferimento documentativo
+
+// Mappa coachId → websocket "corrente" per evitare race condition
+// al momento della ri-connessione con stesso PIN
+const activeConnections = {};
 
 function startHeartbeat() {
   setInterval(() => {
@@ -193,6 +197,10 @@ wss.on('connection', ws => {
             state.coaches[sess.coachId].online = true;
           }
 
+          // Registra questa ws come connessione attiva per questo coachId
+          // (sovrascrive eventuale vecchio socket zombie)
+          activeConnections[ws.coachId] = ws;
+
           sendTo(ws, {
             type: 'registered', role: 'coach',
             coachId: ws.coachId,
@@ -212,6 +220,9 @@ wss.on('connection', ws => {
 
           sessions[pin] = { coachId, name, budgetInitial: budget, budgetCurrent: budget };
           state.coaches[coachId] = { name, budget, pin, online: true };
+
+          // Registra connessione attiva
+          activeConnections[coachId] = ws;
 
           sendTo(ws, {
             type: 'registered', role: 'coach',
@@ -439,8 +450,14 @@ wss.on('connection', ws => {
 
   ws.on('close', () => {
     if (ws.role === 'coach' && ws.coachId && state.coaches[ws.coachId]) {
-      state.coaches[ws.coachId].online = false;
-      broadcastState();
+      // Marca offline SOLO se questo socket è ancora la connessione attiva.
+      // Se il coach si è già riconnesso con lo stesso PIN, activeConnections[coachId]
+      // punta al nuovo socket → non sovrascrivere online=true con false.
+      if (activeConnections[ws.coachId] === ws) {
+        delete activeConnections[ws.coachId];
+        state.coaches[ws.coachId].online = false;
+        broadcastState();
+      }
     }
   });
 });
