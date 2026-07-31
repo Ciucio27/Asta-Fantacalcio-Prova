@@ -125,8 +125,8 @@ const wss = new WebSocket.Server({ server });
 
 // Heartbeat: il server manda un ping ogni 20s.
 // Se il client non risponde entro 25s viene terminato e rimosso.
-const PING_INTERVAL  = 20000; // ms tra un ping e l'altro
-const PING_TIMEOUT   = 25000; // ms prima di considerare il client morto
+const PING_INTERVAL  = 8000;  // ping ogni 8s — rilevamento caduta entro ~16s
+const PING_TIMEOUT   = 12000; // non usato direttamente, un ciclo mancato = terminate
 
 function startHeartbeat() {
   setInterval(() => {

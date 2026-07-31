@@ -983,13 +983,13 @@ function _connect() {
     setBadge(true);
     showCoachConnBanner(false);
 
-    // Ping lato client ogni 15s per tenere viva la connessione su mobile
-    // (i proxy mobili chiudono connessioni idle dopo ~30s)
+    // Keepalive ogni 7s — mantiene viva la connessione su mobile
+    // e arriva sempre prima del ping server (8s), evitando falsi timeout
     clientPingTimer = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         sndObj({ type: 'client_ping' });
       }
-    }, 15000);
+    }, 7000);
 
     wsOnOpen();
   };
@@ -1032,7 +1032,7 @@ function _reconnect() {
 
     clientPingTimer = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) sndObj({ type: 'client_ping' });
-    }, 15000);
+    }, 7000);
 
     // Re-registra il ruolo automaticamente
     if (myRole === 'coach' && myCoachId) {
