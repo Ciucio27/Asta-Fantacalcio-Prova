@@ -627,6 +627,7 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
             <button class="rbtn r-Ds"  onclick="setRoleFilter('Ds')">Ds</button>
             <button class="rbtn r-Dd"  onclick="setRoleFilter('Dd')">Dd</button>
             <button class="rbtn r-Dc"  onclick="setRoleFilter('Dc')">Dc</button>
+            <button class="rbtn r-B"   onclick="setRoleFilter('B')">B</button>
             <button class="rbtn r-E"   onclick="setRoleFilter('E')">E</button>
             <button class="rbtn r-M"   onclick="setRoleFilter('M')">M</button>
             <button class="rbtn r-C"   onclick="setRoleFilter('C')">C</button>
@@ -1251,10 +1252,11 @@ function setRoleFilter(role) {
 
 // CSS dinamico per i pulsanti ruolo specifici (colore unificato per gruppo)
 const ROLE_COLORS = {
-  Por: '#4499ee',
-  Ds: '#33bb55', Dd: '#33bb55', Dc: '#33bb55',
-  E: '#ccaa22', M: '#ccaa22', C: '#ccaa22', T: '#ccaa22', W: '#ccaa22',
-  A: '#cc4433', Pc: '#cc4433'
+  Por: '#e05555',                          // rosso chiaro
+  Ds: '#3377dd', Dd: '#3377dd', Dc: '#3377dd', B: '#3377dd', E: '#3377dd', // blu
+  M: '#33aa55', C: '#33aa55',              // verde
+  T: '#8844cc', W: '#8844cc',              // viola
+  A: '#cc2222', Pc: '#cc2222'              // rosso
 };
 // Inietta stili active dinamicamente una volta sola
 (function injectRoleStyles() {
@@ -1338,7 +1340,9 @@ function renderQueueList(filter, s) {
 
   $('qp-list').innerHTML = filtered.length
     ? filtered.map(p => {
-        const col = roleColors[p.role.charAt(0)] || '#aaa';
+        // Il colore usa il PRIMO ruolo del giocatore
+        const firstRole = p.role ? p.role.split('/')[0].trim() : '';
+        const col = ROLE_COLORS[firstRole] || '#888';
         return `<div class="q-item">
           <span class="q-role" style="color:${col};background:${col}22">${p.role}</span>
           <span class="q-name">${p.name}</span>
