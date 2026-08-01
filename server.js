@@ -382,7 +382,31 @@ wss.on('connection', ws => {
         state.currentPlayer = null; state.bids = []; state.bidsRevealed = false;
         state.auctionActive = false; stopTimer();
         broadcastState();
-        setTimeout(saveBackup, 500); // salva subito dopo ogni assegnazione
+        setTimeout(saveBackup, 500);
+        break;
+      }
+
+      // ── Admin: revoca assegnazione e rimette il giocatore in coda ──────────
+      // msg.playerName = nome del giocatore da revocare
+      case 'revoke_assign': {
+        const idx = state.assigned.findIndex(a => a.player.name === msg.playerName);
+        if (idx < 0) break;
+
+        const entry = state.assigned.splice(idx, 1)[0];
+
+        // Rimette il giocatore in coda (in fondo — verrà rimescolato al prossimo avvio
+        // ma durante la sessione corrente sarà disponibile per la selezione manuale)
+        state.queue.push(entry.player);
+
+        // Restituisce i crediti all'allenatore
+        if (entry.coachId && state.coaches[entry.coachId]) {
+          const newBudget = state.coaches[entry.coachId].budget + entry.amount;
+          updateBudget(entry.coachId, newBudget);
+        }
+
+        broadcastState();
+        broadcast({ type: 'assign_revoked', playerName: entry.player.name, coachName: entry.coachName });
+        setTimeout(saveBackup, 500);
         break;
       }
 

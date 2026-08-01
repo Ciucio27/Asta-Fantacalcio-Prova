@@ -295,6 +295,11 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .ag-cell .ag-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ag-cell .ag-cr{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;
   color:var(--gold);font-weight:700;flex-shrink:0;margin-left:auto;padding-left:.2rem}
+.ag-cell .ag-revoke{background:none;border:none;color:var(--dim);cursor:pointer;
+  font-size:.8rem;padding:0 .1rem;line-height:1;flex-shrink:0;
+  opacity:0;transition:opacity .15s,color .15s}
+.ag-cell:hover .ag-revoke{opacity:1}
+.ag-cell .ag-revoke:hover{color:var(--red)}
 .ag-empty{text-align:center;color:var(--dim);font-size:.75rem;padding:.5rem}
 
 /* ricerca giocatori */
@@ -1170,7 +1175,12 @@ function clearSelected() {
   show('btn-next-manual', false);
 }
 
-function nextManual() {
+function revokeAssign(idx) {
+  const playerName = (window._assignGrid || [])[idx];
+  if (!playerName) return;
+  if (!confirm(`Revocare l'assegnazione di ${playerName}?\nIl giocatore tornerà nella lista disponibile e i crediti saranno restituiti all'allenatore.`)) return;
+  sndObj({ type: 'revoke_assign', playerName });
+}
   if (!selectedPlayer) { toast('Nessun giocatore selezionato','err'); return; }
   // Controlla che non ci sia già un giocatore in asta
   if (lastState?.currentPlayer) { toast('Chiudi prima l\'asta corrente','err'); return; }
@@ -1213,6 +1223,9 @@ function handleMsg(msg) {
       break;
     case 'assignments_imported':
       toast(`✅ ${msg.count} assegnazioni ripristinate`,'ok');
+      break;
+    case 'assign_revoked':
+      toast(`↩ ${msg.playerName} rimesso in coda (da ${msg.coachName})`, 'info', 3500);
       break;
 
     case 'new_player':
@@ -1520,15 +1533,21 @@ function renderAssignGrid(s) {
     </div>`;
   });
 
+  // Mappa globale per accedere ai nomi per indice (evita apostrofi nell'onclick)
+  window._assignGrid = [];
+
   // Righe giocatori
   for (let row = 0; row < maxRows; row++) {
     coachIds.forEach(id => {
       const a = byCoach[id][row];
       if (a) {
+        const idx = window._assignGrid.length;
+        window._assignGrid.push(a.player.name);
         html += `<div class="ag-cell">
           <span class="ag-role">${a.player.role}</span>
           <span class="ag-name">${a.player.name}</span>
           <span class="ag-cr">${a.amount}</span>
+          <button class="ag-revoke" onclick="revokeAssign(${idx})" title="Revoca e rimetti in coda">✕</button>
         </div>`;
       } else {
         html += `<div class="ag-cell"></div>`;
