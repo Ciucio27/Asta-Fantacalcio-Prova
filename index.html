@@ -288,7 +288,6 @@ textarea{resize:vertical;min-height:80px;font-size:.82rem}
 .ag-cell{border:1px solid var(--border);border-top:none;
   padding:.32rem .45rem;min-width:130px;font-size:.78rem;
   display:flex;align-items:center;gap:.3rem;min-height:28px}
-.ag-cell:nth-child(even){background:#0f1812}
 .ag-cell .ag-role{font-size:.62rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;
   color:var(--gray);background:var(--bg3);border-radius:3px;
   padding:0 3px;flex-shrink:0;min-width:14px;text-align:center}
@@ -1514,12 +1513,22 @@ function renderAssignGrid(s) {
   const N = coachIds.length;
   grid.style.gridTemplateColumns = `repeat(${N}, minmax(130px, 1fr))`;
 
-  // Raggruppa assegnazioni per allenatore
+  // Ordine ruoli per la visualizzazione
+  const ROLE_ORDER = ['Por','Dc','Ds','Dd','B','E','M','C','T','W','A','Pc'];
+  function roleRank(roleStr) {
+    const first = (roleStr || '').split('/')[0].trim();
+    const idx = ROLE_ORDER.indexOf(first);
+    return idx >= 0 ? idx : 99;
+  }
+
+  // Raggruppa assegnazioni per allenatore e ordina per ruolo
   const byCoach = {};
   coachIds.forEach(id => { byCoach[id] = []; });
   assigned.forEach(a => { if (byCoach[a.coachId]) byCoach[a.coachId].push(a); });
+  coachIds.forEach(id => {
+    byCoach[id].sort((a, b) => roleRank(a.player.role) - roleRank(b.player.role));
+  });
 
-  // Numero massimo di giocatori in qualsiasi rosa
   const maxRows = Math.max(1, ...coachIds.map(id => byCoach[id].length));
 
   let html = '';
@@ -1545,8 +1554,11 @@ function renderAssignGrid(s) {
       if (a) {
         const idx = window._assignGrid.length;
         window._assignGrid.push(a.player.name);
-        html += `<div class="ag-cell">
-          <span class="ag-role">${a.player.role}</span>
+        // Colore sfondo basato sul primo ruolo (stesso schema della lista coda)
+        const firstRole = (a.player.role || '').split('/')[0].trim();
+        const col = ROLE_COLORS[firstRole] || '#555';
+        html += `<div class="ag-cell" style="background:${col}1a;border-left:3px solid ${col}50">
+          <span class="ag-role" style="color:${col}">${a.player.role}</span>
           <span class="ag-name">${a.player.name}</span>
           <span class="ag-cr">${a.amount}</span>
           <button class="ag-revoke" onclick="revokeAssign(${idx})" title="Revoca e rimetti in coda">✕</button>
