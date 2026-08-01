@@ -1181,9 +1181,11 @@ function revokeAssign(idx) {
   if (!confirm(`Revocare l'assegnazione di ${playerName}?\nIl giocatore tornerà nella lista disponibile e i crediti saranno restituiti all'allenatore.`)) return;
   sndObj({ type: 'revoke_assign', playerName });
 }
+
+function nextManual() {
   if (!selectedPlayer) { toast('Nessun giocatore selezionato','err'); return; }
   // Controlla che non ci sia già un giocatore in asta
-  if (lastState?.currentPlayer) { toast('Chiudi prima l\'asta corrente','err'); return; }
+  if (lastState?.currentPlayer) { toast("Chiudi prima l'asta corrente",'err'); return; }
   sndObj({ type:'pick_player', playerName: selectedPlayer.name });
   clearSelected();
 }
